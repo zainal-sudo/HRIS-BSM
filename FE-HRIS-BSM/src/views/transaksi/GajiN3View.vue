@@ -161,20 +161,46 @@ const slipRows = computed(() => sortedRows.value as unknown as SlipGajiN3Item[])
 const total = computed(() => {
   const t = {
     gapok: 0,
+    tjabatan: 0,
+    tkompetensi: 0,
+    tmakan: 0,
+    transport: 0,
     tunjangan: 0,
     lembur: 0,
     potongan: 0,
     pph21: 0,
     angsuran: 0,
+    simpananpokok: 0,
+    sisaangsuran: 0,
+    bpjs: 0,
+    bpjstk: 0,
+    koperasi: 0,
+    tidakmasuk: 0,
+    terlambat: 0,
+    potonghari: 0,
+    poin: 0,
     total: 0,
   };
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
+    t.tjabatan += num(r.tjabatan);
+    t.tkompetensi += num(r.tkompetensi);
+    t.tmakan += num(r.tmakan);
+    t.transport += num(r.transport);
     t.tunjangan += num(r.tjabatan) + num(r.tkompetensi) + num(r.tmakan) + num(r.transport);
     t.lembur += num(r.lembur);
     t.potongan += num(r.potongan);
     t.pph21 += num(r.pph21);
     t.angsuran += num(r.angsuran);
+    t.simpananpokok += num(r.simpananpokok);
+    t.sisaangsuran += num(r.sisaangsuran);
+    t.bpjs += num(r.bpjs);
+    t.bpjstk += num(r.bpjstk);
+    t.koperasi += num(r.koperasi);
+    t.tidakmasuk += num(r.tidakmasuk);
+    t.terlambat += num(r.terlambat);
+    t.potonghari += num(r.potonghari);
+    t.poin += num(r.poin);
     t.total += num(r.total);
   }
   return t;
@@ -845,6 +871,14 @@ onMounted(() => {
         <b>{{ fmt(total.potongan) }}</b> Total Potongan
       </div>
       <div class="sum-item">
+        <span class="sum-icon potong"><MsIcon name="savings" :size="15" /></span>
+        <b>{{ fmt(total.simpananpokok) }}</b> Simpanan Pokok
+      </div>
+      <div class="sum-item">
+        <span class="sum-icon potong"><MsIcon name="payments" :size="15" /></span>
+        <b>{{ fmt(total.angsuran) }}</b> Total Angsuran
+      </div>
+      <div class="sum-item">
         <span class="sum-icon total"><MsIcon name="account_balance_wallet" :size="15" /></span>
         <b>{{ fmt(total.total) }}</b> Total Gaji
       </div>
@@ -928,12 +962,25 @@ onMounted(() => {
             <tr>
               <td colspan="6" class="r strong">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
-              <td colspan="2"></td>
+              <td class="r strong">{{ fmt(total.tmakan) }}</td>
+              <td class="r strong">{{ fmt(total.transport) }}</td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
               <td class="r strong">{{ fmt(total.total) }}</td>
-              <td colspan="13"></td>
+              <td class="r strong">{{ fmt(total.tjabatan) }}</td>
+              <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
+              <td class="r strong">{{ fmt(total.poin) }}</td>
+              <td class="r strong">{{ fmt(total.bpjs) }}</td>
+              <td class="r strong">{{ fmt(total.bpjstk) }}</td>
+              <td class="r strong">{{ fmt(total.koperasi) }}</td>
+              <td class="r strong">{{ fmt(total.tidakmasuk) }}</td>
+              <td class="r strong">{{ fmt(total.terlambat) }}</td>
+              <td class="r strong">{{ fmt(total.potonghari) }}</td>
+              <td class="r strong">{{ fmt(total.angsuran) }}</td>
+              <td class="r strong">{{ fmt(total.pph21) }}</td>
+              <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
+              <td class="r strong">{{ fmt(total.sisaangsuran) }}</td>
               <td></td>
             </tr>
           </tfoot>

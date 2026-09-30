@@ -135,13 +135,14 @@ export const getAbsensiPkrt = async (req, res, next) => {
             return error(res, 'Tanggal awal tidak boleh melewati tanggal akhir', 400)
         }
 
-        const [nikRows] = await pool.query(
+const [nikRows] = await pool.query(
             `SELECT k.kar_nik AS nik
        FROM tkaryawan k
        LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
-WHERE k.kar_status_aktif = 1
-         AND ${FILTER_UNIT_PKRT}
-         AND ${FILTER_JABATAN_GAJI_PKRT}`
+       LEFT JOIN tjabatan j ON j.kd_jabat = k.kar_kd_jabat
+ WHERE k.kar_status_aktif = 1
+           AND ${FILTER_UNIT_PKRT}
+           AND ${FILTER_JABATAN_GAJI_PKRT}`
         )
         const nikPkrt = new Set(nikRows.map((r) => String(r.nik).trim()))
 
