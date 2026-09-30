@@ -259,7 +259,7 @@ async function muatKaryawan() {
   }
 }
 
-/** 2. Tarik absensi (Delphi N3: Terlambat & Pot. Hari; Tidak Masuk & Poin manual) */
+/** 2. Tarik absensi (Delphi N3: Terlambat, Pot. Hari, Poin Lembur otomatis; Tidak Masuk manual) */
 async function tarikAbsensi() {
   if (rows.value.length === 0) {
     toast.warning("Muat data karyawan terlebih dahulu");
@@ -288,20 +288,21 @@ async function tarikAbsensi() {
       if (!r) continue;
       r.terlambat = num(a.terlambat);
       r.potonghari = num(a.potonghari);
+      r.poin = num(a.poin);
       recalc(r);
       cocok += 1;
     }
 
     const tanpaData: string[] = data.data?.tanpaData || [];
-    if (cocok === 0) {
-      toast.warning("Tidak ada rekap absensi yang cocok dengan NIK di grid");
-    } else {
-      toast.success(
-        `Absensi ${rangeLabel.value} terproses untuk ${cocok} karyawan` +
-          (tanpaData.length > 0 ? `, ${tanpaData.length} karyawan tanpa data absensi` : "") +
-          ". Tidak Masuk & Poin diisi manual."
-      );
-    }
+if (cocok === 0) {
+        toast.warning("Tidak ada rekap absensi yang cocok dengan NIK di grid");
+      } else {
+        toast.success(
+          `Absensi ${rangeLabel.value} terproses untuk ${cocok} karyawan` +
+            (tanpaData.length > 0 ? `, ${tanpaData.length} karyawan tanpa data absensi` : "") +
+            ". Poin Lembur & Pot. Hari otomatis; Tidak Masuk manual."
+        );
+      }
   } catch (e) {
     toast.error(getErrorMessage(e, "Gagal menarik data absensi"));
   } finally {

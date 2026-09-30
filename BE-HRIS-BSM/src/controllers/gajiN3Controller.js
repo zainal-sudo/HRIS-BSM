@@ -158,6 +158,7 @@ export const getAbsensiN3 = async (req, res, next) => {
                 terlambat: num(r.Terlambat),
                 tidakmasuk: tidakMasuk,
                 potonghari: num(r.Potong_Gaji),
+                poin: num(r.TotalPoinLembur),
                 keterangan: r.Keterangan || '',
             }
         })
