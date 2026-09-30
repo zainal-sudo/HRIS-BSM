@@ -207,6 +207,8 @@ const total = computed(() => {
   const t = {
     gapok: 0, tunjangan: 0, thp: 0, lembur: 0, insentif: 0,
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
+    bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
+    nominalpotgaji: 0,
   };
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
@@ -217,6 +219,11 @@ const total = computed(() => {
     t.pph21 += num(r.pph21);
     t.bpjs += num(r.bpjskesehatan) + num(r.bpjstk);
     t.lainnya += num(r.simpankoperasi) + num(r.cicilan);
+    t.bpjskesehatan += num(r.bpjskesehatan);
+    t.bpjstk += num(r.bpjstk);
+    t.simpankoperasi += num(r.simpankoperasi);
+    t.cicilan += num(r.cicilan);
+    t.nominalpotgaji += num(r.nominalpotgaji);
     t.potongan += num(r.potongan);
     t.gaji += num(r.gajibulat);
   }
@@ -917,10 +924,11 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.insentif) }}</td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
-              <td class="r strong">{{ fmt(total.bpjs) }}</td>
-              <td class="r strong"></td>
-              <td class="r strong">{{ fmt(total.lainnya) }}</td>
-              <td class="r strong"></td>
+              <td class="r strong">{{ fmt(total.bpjskesehatan) }}</td>
+              <td class="r strong">{{ fmt(total.bpjstk) }}</td>
+              <td class="r strong">{{ fmt(total.simpankoperasi) }}</td>
+              <td class="r strong">{{ fmt(total.cicilan) }}</td>
+              <td class="r strong">{{ fmt(total.nominalpotgaji) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td class="r strong">{{ fmt(total.gaji) }}</td>
               <td class="r strong"></td>

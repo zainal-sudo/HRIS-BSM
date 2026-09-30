@@ -908,14 +908,15 @@ onMounted(() => {
           </tbody>
           <tfoot v-if="rows.length > 0">
             <tr>
-              <td colspan="7" class="r strong">TOTAL</td>
-              <td class="r strong">{{ fmt(total.tunjangan) }}</td>
+              <td colspan="6" class="r strong">TOTAL</td>
+              <td class="r strong">{{ fmt(total.gapok) }}</td>
               <td colspan="2"></td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
               <td class="r strong">{{ fmt(total.total) }}</td>
               <td colspan="13"></td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
