@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import { success, error } from '../helpers/response.js'
-import { FILTER_UNIT_PKRT } from '../helpers/pkrt.js'
+import { FILTER_UNIT_PKRT, FILTER_JABATAN_GAJI_PKRT } from '../helpers/pkrt.js'
 
 /**
  * SETTING GAJI PKRT
@@ -98,6 +98,7 @@ export const getSettingGajiPkrt = async (req, res, next) => {
       LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
       WHERE k.kar_status_aktif = 1
         AND ${FILTER_UNIT_PKRT}
+        AND ${FILTER_JABATAN_GAJI_PKRT}
         ${filterUnit}
       ORDER BY k.kar_nama`,
             params

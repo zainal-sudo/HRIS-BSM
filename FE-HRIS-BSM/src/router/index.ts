@@ -32,6 +32,11 @@ const routes = [
     component: () => import("@/views/master/SettingGajiBsmView.vue"),
     meta: { requiresAuth: true, title: "Setting Gaji BSM" },
   },
+  {
+    path: "/master/setting-gaji-pkrt",
+    component: () => import("@/views/master/SettingGajiPkrtView.vue"),
+    meta: { requiresAuth: true, title: "Setting Gaji PKRT" },
+  },
   // ── TRANSAKSI ──
   { path: "/transaksi/izin", component: () => import("@/views/transaksi/IzinView.vue"), meta: { requiresAuth: true } },
   { path: "/transaksi/izin/form", component: () => import("@/views/transaksi/IzinForm.vue"), meta: { requiresAuth: true } },
@@ -55,6 +60,11 @@ const routes = [
     path: "/transaksi/proses-gaji-n3",
     component: () => import("@/views/transaksi/GajiN3View.vue"),
     meta: { requiresAuth: true, title: "Proses Gaji N3" },
+  },
+  {
+    path: "/transaksi/proses-gaji-pkrt",
+    component: () => import("@/views/transaksi/GajiPkrtView.vue"),
+    meta: { requiresAuth: true, title: "Proses Gaji PKRT" },
   },
   { path: "/master/setting-gaji-n3", component: () => import("@/views/master/SettingGajiN3View.vue"), meta: { requiresAuth: true, title: "Setting Gaji N3" } },
   {

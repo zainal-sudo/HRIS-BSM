@@ -94,23 +94,27 @@ const fmt = (v: number) => formatNumber(Number(Number(v || 0).toFixed(0)));
 const total = computed(() => {
   const t = {
     gapok: 0,
-    tunjangan: 0,
+    tjabatan: 0,
+    tkompetensi: 0,
     tmakan: 0,
     thp: 0,
     pph21: 0,
-    bpjs: 0,
-    koperasi: 0,
+    bpjskesehatan: 0,
+    bpjstk: 0,
+    simpankoperasi: 0,
     cicilan: 0,
     potongan: 0,
   };
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
-    t.tunjangan += num(r.tjabatan) + num(r.tkompetensi);
+    t.tjabatan += num(r.tjabatan);
+    t.tkompetensi += num(r.tkompetensi);
     t.tmakan += num(r.tmakan);
     t.thp += num(r.thp);
     t.pph21 += num(r.pph21);
-    t.bpjs += num(r.bpjskesehatan) + num(r.bpjstk);
-    t.koperasi += num(r.simpankoperasi);
+    t.bpjskesehatan += num(r.bpjskesehatan);
+    t.bpjstk += num(r.bpjstk);
+    t.simpankoperasi += num(r.simpankoperasi);
     t.cicilan += num(r.cicilan);
     t.potongan +=
       num(r.pph21) +
@@ -340,7 +344,7 @@ onMounted(() => {
       </div>
       <div class="sum-item">
         <span class="sum-icon lembur"><MsIcon name="card_giftcard" :size="15" /></span>
-        <b>{{ fmt(total.tunjangan + total.tmakan) }}</b> Total Tunjangan
+        <b>{{ fmt(total.tjabatan + total.tkompetensi + total.tmakan) }}</b> Total Tunjangan
       </div>
       <div class="sum-item">
         <span class="sum-icon potong"><MsIcon name="cancel" :size="15" /></span>
@@ -414,12 +418,14 @@ onMounted(() => {
             <tr>
               <td colspan="5" class="r strong">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
-              <td class="r strong">{{ fmt(total.tunjangan) }}</td>
+              <td class="r strong">{{ fmt(total.tjabatan) }}</td>
+              <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
               <td class="r strong">{{ fmt(total.tmakan) }}</td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
-              <td class="r strong">{{ fmt(total.bpjs) }}</td>
-              <td class="r strong"></td>
-              <td class="r strong">{{ fmt(total.potongan) }}</td>
+              <td class="r strong">{{ fmt(total.bpjskesehatan) }}</td>
+              <td class="r strong">{{ fmt(total.bpjstk) }}</td>
+              <td class="r strong">{{ fmt(total.simpankoperasi) }}</td>
+              <td class="r strong">{{ fmt(total.cicilan) }}</td>
               <td class="r strong">{{ fmt(total.thp) }}</td>
             </tr>
           </tfoot>
@@ -473,4 +479,294 @@ onMounted(() => {
 </template>
 
 
-<!--STYLE-->
+<style scoped>
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.page-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--ds-primary-dark, #243656);
+  margin: 0;
+}
+.page-sub {
+  font-size: 11px;
+  color: #6b7a90;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--ds-border, #b0b8c4);
+  background: linear-gradient(180deg, #42587f 0%, #334a6e 100%);
+  color: #fff;
+}
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.toolbar-left b {
+  font-weight: 800;
+}
+.filter-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.85);
+}
+.filter-select {
+  height: 30px;
+  min-width: 210px;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 11.5px;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  outline: none;
+}
+.filter-select option {
+  color: #1b2d4a;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 6px 0 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+.search-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 11.5px;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  width: 200px;
+}
+.search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.search-clear {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  padding: 2px;
+}
+.search-clear:hover {
+  color: #fff;
+}
+.filter-hint {
+  font-size: 10.5px;
+  color: #8a94a3;
+}
+.toolbar-right {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.badge {
+  padding: 2px 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.badge.muted {
+  background: rgba(255, 255, 255, 0.12);
+}
+.btn {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+.btn.primary {
+  background: #ffd479;
+  border-color: #f0c26a;
+  color: #33415c;
+}
+.btn.primary:hover:not(:disabled) {
+  background: #ffdf9a;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.warn-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: #fef7e8;
+  border: 1px solid #f0d29b;
+  color: #92400e;
+  font-size: 11.5px;
+}
+.summary-strip {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.sum-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--ds-border, #b0b8c4);
+  background: #fff;
+  font-size: 11.5px;
+  color: #55637a;
+}
+.sum-item b {
+  font-size: 13px;
+  color: var(--ds-on-surface, #1b2d4a);
+}
+.sum-icon {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  border-radius: 3px;
+  padding: 3px;
+}
+.sum-icon.total { background: #5b6472; }
+.sum-icon.masuk { background: #2f9e44; }
+.sum-icon.potong { background: #d63031; }
+.sum-icon.lembur { background: #e8871e; }
+.table-card {
+  border: 1px solid var(--ds-border, #b0b8c4);
+  background: #fff;
+}
+.table-scroll {
+  overflow: auto;
+  max-height: 58vh;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--ds-primary-dark, #243656);
+  color: #fff;
+  padding: 6px 6px;
+  text-align: left;
+  border: 1px solid #1b2d4a;
+  font-weight: 700;
+  white-space: nowrap;
+  z-index: 2;
+}
+.data-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.data-table th.sortable:hover {
+  background: #2e4468;
+}
+.data-table th.sorted {
+  background: #31496f;
+}
+.th-sort {
+  vertical-align: middle;
+  margin-left: 4px;
+  opacity: 0.55;
+}
+th.sorted .th-sort {
+  opacity: 1;
+}
+.data-table td {
+  padding: 3px 6px;
+  border: 1px solid #d7dde5;
+  color: var(--ds-on-surface, #1b2d4a);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.data-table tbody tr:nth-child(even) {
+  background: #f4f6fa;
+}
+.data-table tbody tr:hover {
+  background: #e9eef7;
+}
+.data-table tfoot td {
+  position: sticky;
+  bottom: 0;
+  background: #eef2f9;
+  font-weight: 700;
+}
+.c { text-align: center; }
+.r { text-align: right; }
+.strong { font-weight: 800; }
+.row-empty {
+  text-align: center;
+  color: #8a94a3;
+  padding: 24px !important;
+}
+.cell-input {
+  width: 100%;
+  height: 24px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 11px;
+  color: var(--ds-on-surface, #1b2d4a);
+  text-align: right;
+  outline: none;
+}
+.cell-input:hover {
+  border-color: #b9c3d2;
+  background: #fff;
+}
+.cell-input:focus {
+  border-color: var(--ds-primary, #3b5998);
+  background: #fff;
+}
+.table-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 10.5px;
+  color: #6b7a90;
+  border-top: 1px solid var(--ds-border, #b0b8c4);
+  background: #f7f9fc;
+}
+</style>
+

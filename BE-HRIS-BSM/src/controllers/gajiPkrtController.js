@@ -3,6 +3,7 @@ import { success, error } from '../helpers/response.js'
 import { smtpTransporter, kirimSlipPdf } from '../helpers/smtp.js'
 import {
     FILTER_UNIT_PKRT,
+    FILTER_JABATAN_GAJI_PKRT,
     hitungGajiPkrt,
     num,
 } from '../helpers/pkrt.js'
@@ -99,6 +100,7 @@ export const getKaryawanPkrt = async (req, res, next) => {
        LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
       WHERE k.kar_status_aktif = 1
         AND ${FILTER_UNIT_PKRT}
+        AND ${FILTER_JABATAN_GAJI_PKRT}
       ORDER BY k.kar_nama`
         )
 
@@ -137,8 +139,9 @@ export const getAbsensiPkrt = async (req, res, next) => {
             `SELECT k.kar_nik AS nik
        FROM tkaryawan k
        LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
-      WHERE k.kar_status_aktif = 1
-        AND ${FILTER_UNIT_PKRT}`
+WHERE k.kar_status_aktif = 1
+         AND ${FILTER_UNIT_PKRT}
+         AND ${FILTER_JABATAN_GAJI_PKRT}`
         )
         const nikPkrt = new Set(nikRows.map((r) => String(r.nik).trim()))
 
@@ -213,6 +216,7 @@ export const getGajiPkrt = async (req, res, next) => {
       LEFT JOIN tjabatan j ON j.kd_jabat = k.kar_kd_jabat
       LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
       WHERE g.gb_periode = ? AND g.gb_tahun = ?
+        AND ${FILTER_JABATAN_GAJI_PKRT}
       ORDER BY g.gb_nik`,
             [periode, tahun]
         )

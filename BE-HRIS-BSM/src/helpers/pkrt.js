@@ -23,6 +23,14 @@
 /** Filter unit payroll PKRT (dipakai di SETELUH query modul ini). */
 export const FILTER_UNIT_PKRT = "u.nm_unit LIKE '%PKRT%'"
 
+/**
+ * Jabatan yang tidak diikutkan di Setting Gaji PKRT & Proses Gaji PKRT
+ * (pembayarannya beda jalur: borongan & security).
+ */
+export const FILTER_JABATAN_GAJI_PKRT =
+    "COALESCE(j.nm_jabat, '') NOT LIKE '%borongan%'" +
+    " AND COALESCE(j.nm_jabat, '') NOT LIKE '%security%'"
+
 /** Pembagi poin lembur: rupiah lembur = poin / 173 * THP */
 export const PEMBAGI_POIN_LEMBUR = 173
 
