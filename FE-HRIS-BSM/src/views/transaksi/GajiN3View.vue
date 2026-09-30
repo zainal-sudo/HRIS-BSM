@@ -7,6 +7,7 @@ import CetakSlipGajiN3, { type SlipGajiN3Item } from "@/components/CetakSlipGaji
 import { api, getErrorMessage } from "@/api/axios";
 import { formatNumber } from "@/utils/format";
 import { sortByKey, nextSort, sortIconName, type SortDir } from "@/utils/table";
+import JSZip from "jszip";
 import {
   folderApiTersedia,
   muatFolder,
@@ -538,29 +539,45 @@ async function exportSemuaPdf() {
   }
 }
 
-/** Cadangan: unduh satu per satu bila Folder API tidak tersedia */
+/** Cadangan: unduh semua slip sebagai 1 file ZIP (hindari prompt "Keep" browser) */
 async function exportLewatUnduhan() {
+  if (sortedRows.value.length === 0) return;
   pdfExport.jalan = true;
   pdfExport.sudah = 0;
   pdfExport.total = sortedRows.value.length;
   let gagal = 0;
+
+  const zip = new JSZip();
+
   for (const r of sortedRows.value) {
     try {
-      await slipRef.value?.exportPdfFile(slipDari(r));
+      const item = slipDari(r);
+      const hasil = await slipRef.value?.renderPdfBlob(item);
+      if (!hasil) throw new Error("gagal render");
+      zip.file(hasil.filename, hasil.blob);
     } catch {
       gagal += 1;
     }
     pdfExport.sudah += 1;
-    await new Promise((res) => setTimeout(res, 400));
   }
+
+  if (pdfExport.total - gagal > 0) {
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gaji-n3_${filters.tahun}_${String(filters.periode).padStart(2, "0")}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   pdfExport.jalan = false;
   if (gagal === 0) {
-    toast.success(
-      `${pdfExport.total} file PDF terunduh (format NIK_BULANTAHUN.pdf). ` +
-        "Jika browser meminta izin unduhan ganda, pilih Izinkan."
-    );
+    toast.success(`${pdfExport.total} slip gaji dikemas ke 1 file ZIP dan diunduh.`);
   } else {
-    toast.warning(`Selesai dengan ${gagal} gagal dari ${pdfExport.total} karyawan`);
+    toast.warning(`${pdfExport.total - gagal} slip masuk ZIP, ${gagal} gagal.`);
   }
 }
 
