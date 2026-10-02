@@ -184,11 +184,25 @@ const total = computed(() => {
 const fmt = (v: number, dec = 0) =>
   formatNumber(Number(v.toFixed(dec)));
 
-/** Default range absensi = tanggal 1 s/d terakhir bulan terpilih */
+/**
+ * Cutoff absensi: 21 bulan sebelumnya s/d 20 bulan terpilih.
+ * Gaji periode 9/2026 memakai absensi 21/08/2026 - 20/09/2026.
+ */
 function setDefaultRange() {
-  const last = new Date(filters.tahun, filters.periode, 0).getDate();
-  filters.start_date = `${filters.tahun}-${String(filters.periode).padStart(2, "0")}-01`;
-  filters.end_date = `${filters.tahun}-${String(filters.periode).padStart(2, "0")}-${last}`;
+  const blnLalu = new Date(filters.tahun, filters.periode - 2, 1);
+  filters.start_date =
+    `${blnLalu.getFullYear()}-${String(blnLalu.getMonth() + 1).padStart(2, "0")}-21`;
+  filters.end_date = `${filters.tahun}-${String(filters.periode).padStart(2, "0")}-20`;
+}
+
+const rangeLabel = computed(() =>
+  filters.start_date && filters.end_date ? `${filters.start_date} s/d ${filters.end_date}` : "-"
+);
+
+/** Tombol untuk mengembalikan ke cutoff resmi (21 s/d 20) */
+function pakaiCutoff() {
+  setDefaultRange();
+  toast.info(`Rentang absensi disetel ke cutoff ${rangeLabel.value}`);
 }
 
 function kosongkanGrid() {
@@ -678,6 +692,13 @@ onMounted(() => {
           <label>Sampai</label>
           <input v-model="filters.end_date" type="date" />
         </div>
+        <button
+          class="btn"
+          title="Kembalikan rentang ke cutoff resmi: 21 bulan lalu s/d 20 bulan ini"
+          @click="pakaiCutoff"
+        >
+          <MsIcon name="event_repeat" :size="15" /> Cutoff 21-20
+        </button>
       </div>
     </div>
 
@@ -685,6 +706,9 @@ onMounted(() => {
       <div class="toolbar-left">
         <span class="sum-icon total"><MsIcon name="payments" :size="14" /></span>
         <b>Periode {{ periodeLabel }}</b>
+        <span class="badge muted" title="Rentang absensi yang dipakai saat menghitung rekap">
+          <MsIcon name="event_repeat" :size="12" /> {{ rangeLabel }}
+        </span>
         <span v-if="adaDataTersimpan !== null" class="badge" :class="adaDataTersimpan > 0 ? 'ok' : 'muted'">
           {{ adaDataTersimpan > 0 ? `Tersimpan: ${adaDataTersimpan} karyawan` : "Belum tersimpan" }}
         </span>

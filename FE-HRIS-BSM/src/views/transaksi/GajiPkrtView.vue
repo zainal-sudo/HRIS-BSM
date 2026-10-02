@@ -30,8 +30,9 @@ import {
  *   Gaji           = THP + Lembur + Insentif - Total Potongan  (dibulatkan)
  *
  * Kolom "Hari Potong" ditarik dari Rekap Absensi (field "Potong_Gaji"),
- * sedangkan Poin & Hari Insentif diinput manual di grid. Sisanya mengikuti
- * master Setting Gaji PKRT.
+ * sedangkan Poin, Hari Insentif, PPh21 & Cicilan diinput manual di grid
+ * (nilai awal PPh21 & Cicilan tetap diambil dari master Setting Gaji PKRT,
+ * lalu boleh disesuaikan untuk periode ini). Sisanya mengikuti master.
  */
 
 interface RowGajiPkrt {
@@ -201,6 +202,15 @@ function recalc(r: RowGajiPkrt) {
   r.gajibulat = Math.round(gaji);
 }
 
+/** Kolom yang diketik manual di grid (dirender sebagai CurrencyInput) */
+type KolomManual = "poin" | "hariinsentif" | "haripotong" | "pph21" | "cicilan";
+
+/** Tulis nilai kolom manual lalu hitung ulang semua kolom turunan. */
+function isiManual(r: RowGajiPkrt, key: KolomManual, v: number) {
+  r[key] = num(v);
+  recalc(r);
+}
+
 const namaBulan = computed(() => BULAN[filters.periode - 1] || "");
 const periodeLabel = computed(() => `${namaBulan.value} ${filters.tahun}`);
 
@@ -311,8 +321,8 @@ async function muatKaryawan() {
 }
 
 /** 2. Tarik "Hari Potong" dari rekap absensi (kolom "Potong Gaji").
- *  Poin & Hari Insentif tidak ada di rekap absensi, jadi dibiarkan sesuai
- *  isian manual di grid (tidak ditimpa menjadi 0). */
+ *  Poin, Hari Insentif, PPh21 & Cicilan tidak ada di rekap absensi, jadi
+ *  dibiarkan sesuai isian manual di grid (tidak ditimpa menjadi 0). */
 async function tarikAbsensi() {
   if (rows.value.length === 0) {
     toast.warning("Muat data karyawan terlebih dahulu");
@@ -351,7 +361,7 @@ async function tarikAbsensi() {
       toast.success(
         `Hari Potong ${rangeLabel.value} terproses untuk ${cocok} karyawan` +
           (tanpaData.length > 0 ? `, ${tanpaData.length} karyawan tanpa data absensi` : "") +
-          ". Poin & Hari Insentif tetap memakai isian manual."
+          ". Poin, Hari Insentif, PPh21 & Cicilan tetap memakai isian manual."
       );
     }
   } catch (e) {
@@ -702,6 +712,8 @@ const editableColumns = [
   { key: "poin", label: "Poin", width: "70px", align: "c" },
   { key: "hariinsentif", label: "Hari Insentif", width: "95px", align: "c" },
   { key: "haripotong", label: "Hari Potong", width: "90px", align: "c" },
+  { key: "pph21", label: "PPh21", width: "95px", align: "c" },
+  { key: "cicilan", label: "Cicilan", width: "95px", align: "c" },
 ] as const;
 
 interface Kolom {
@@ -718,11 +730,9 @@ const infoColumns = [
   { key: "thp", label: "THP", width: "105px", align: "r" },
   { key: "lembur", label: "Lembur", width: "100px", align: "r" },
   { key: "insentif", label: "Insentif", width: "95px", align: "r" },
-  { key: "pph21", label: "PPh21", width: "85px", align: "r" },
   { key: "bpjskesehatan", label: "BPJS Kes", width: "90px", align: "r" },
   { key: "bpjstk", label: "BPJS TK", width: "90px", align: "r" },
   { key: "simpankoperasi", label: "Koperasi", width: "90px", align: "r" },
-  { key: "cicilan", label: "Cicilan", width: "85px", align: "r" },
   { key: "nominalpotgaji", label: "Potong Gaji", width: "100px", align: "r" },
   { key: "potongan", label: "Total Potongan", width: "110px", align: "r" },
   { key: "gajibulat", label: "Gaji", width: "110px", align: "r" },
@@ -917,17 +927,49 @@ onMounted(() => {
               <td class="r strong">{{ fmt(r.thp) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
               <td class="r">{{ fmt(r.insentif) }}</td>
-              <td class="r">{{ fmt(r.pph21) }}</td>
               <td class="r">{{ fmt(r.bpjskesehatan) }}</td>
               <td class="r">{{ fmt(r.bpjstk) }}</td>
               <td class="r">{{ fmt(r.simpankoperasi) }}</td>
-              <td class="r">{{ fmt(r.cicilan) }}</td>
               <td class="r">{{ fmt(r.nominalpotgaji) }}</td>
               <td class="r">{{ fmt(r.potongan) }}</td>
               <td class="r strong">{{ fmt(r.gajibulat) }}</td>
-              <td class="c"><CurrencyInput v-model="r.poin" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.hariinsentif" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.haripotong" class="cell-input" /></td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.poin"
+                  class="cell-input"
+                  @update:model-value="(v) => isiManual(r, 'poin', v)"
+                />
+              </td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.hariinsentif"
+                  class="cell-input"
+                  @update:model-value="(v) => isiManual(r, 'hariinsentif', v)"
+                />
+              </td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.haripotong"
+                  class="cell-input"
+                  @update:model-value="(v) => isiManual(r, 'haripotong', v)"
+                />
+              </td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.pph21"
+                  class="cell-input"
+                  title="PPh21 periode ini — boleh diisi manual"
+                  @update:model-value="(v) => isiManual(r, 'pph21', v)"
+                />
+              </td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.cicilan"
+                  class="cell-input"
+                  title="Cicilan periode ini — boleh diisi manual"
+                  @update:model-value="(v) => isiManual(r, 'cicilan', v)"
+                />
+              </td>
               <td class="c">
                 <button class="row-btn" title="Cetak slip gaji karyawan ini" @click="cetakSatu(r)">
                   <MsIcon name="print" :size="13" />
@@ -941,17 +983,17 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.thp) }}</td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.insentif) }}</td>
-              <td class="r strong">{{ fmt(total.pph21) }}</td>
               <td class="r strong">{{ fmt(total.bpjskesehatan) }}</td>
               <td class="r strong">{{ fmt(total.bpjstk) }}</td>
               <td class="r strong">{{ fmt(total.simpankoperasi) }}</td>
-              <td class="r strong">{{ fmt(total.cicilan) }}</td>
               <td class="r strong">{{ fmt(total.nominalpotgaji) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td class="r strong">{{ fmt(total.gaji) }}</td>
-              <td class="r strong"></td>
-              <td class="r strong"></td>
-              <td class="r strong"></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td class="r strong">{{ fmt(total.pph21) }}</td>
+              <td class="r strong">{{ fmt(total.cicilan) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -959,15 +1001,17 @@ onMounted(() => {
       </div>
       <div class="table-note">
         <MsIcon name="info" :size="13" />
-        Kolom <b>Poin / Hari Insentif / Hari Potong</b> diketik manual di grid
+        Kolom <b>Poin / Hari Insentif / PPh21 / Cicilan</b> diketik manual di grid
         (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
-        &quot;Potong Gaji&quot; di Rekap Absensi); kolom lainnya dihitung otomatis:
+        &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b> &amp;
+        <b>Cicilan</b> diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,
+        lalu dapat disesuaikan untuk periode ini. Sisanya dihitung otomatis:
         <b>THP</b> = Gapok + Tunj. Jabatan + Tunj. Kompetensi + Tunj. Makan,
         <b>Lembur</b> = Poin / {{ PEMBAGI_LEMBUR }} &times; THP,
         <b>Insentif</b> = Hari Insentif &times; {{ TARIF_INSENTIF.toLocaleString("id-ID") }},
         <b>Potong Gaji</b> = Hari Potong / {{ PEMBAGI_POTONG }} &times; THP,
         <b>Gaji</b> = THP + Lembur + Insentif &minus; Total Potongan (dibulatkan).
-        Nilai Gapok/Tunjangan/Potongan tetap diambil dari menu
+        Nilai Gapok/Tunjangan dan potongan lain tetap mengikuti
         <b>Master &rsaquo; Setting Gaji PKRT</b>.
       </div>
     </div>
