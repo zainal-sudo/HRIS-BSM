@@ -126,6 +126,14 @@ import {
     kirimSlipGajiPkrt,
     tesSmtpPkrt
 } from './controllers/gajiPkrtController.js'
+import {
+    getBrowse as getBrowseUser,
+    getUnitList as getUnitListUser,
+    getAllMenus as getAllMenusUser,
+    getDetail as getDetailUser,
+    saveUser,
+    deleteUser
+} from './controllers/userController.js'
 
 // 🔥 Middleware upload (Express v5 ke atas)
 import multer from 'multer'
@@ -141,6 +149,14 @@ router.post('/auth/refresh', refresh)
 router.use(verifyToken)
 
 router.post('/auth/logout', logout)
+
+// Master User (tuser + tmenu + thakuser, merujuk ke Web Entri)
+router.get('/users', getBrowseUser)
+router.get('/users/unit-list', getUnitListUser)
+router.get('/users/menus', getAllMenusUser)
+router.get('/users/detail/:kode', getDetailUser)
+router.post('/users/save', saveUser)
+router.delete('/users/:kode', deleteUser)
 
 // Karyawan
 router.get('/karyawan/form-options', getFormOptions)

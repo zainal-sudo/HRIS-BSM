@@ -79,6 +79,9 @@ const routes = [
   // ── SETTING ──
   { path: "/setting/hak-user", component: () => import("@/views/setting/HakUserView.vue"), meta: { requiresAuth: true } },
   { path: "/setting/menu", component: () => import("@/views/setting/MenuView.vue"), meta: { requiresAuth: true } },
+  { path: "/setting/user", component: () => import("@/views/setting/UserView.vue"), meta: { requiresAuth: true, title: "Master User" } },
+  { path: "/setting/user/form", component: () => import("@/views/setting/UserFormView.vue"), meta: { requiresAuth: true, title: "Tambah User" } },
+  { path: "/setting/user/form/:kode", component: () => import("@/views/setting/UserFormView.vue"), meta: { requiresAuth: true, title: "Edit User" } },
   // ── ERRORS ──
   { path: "/403", component: () => import("@/views/errors/ForbiddenView.vue"), meta: { requiresAuth: false, layout: "BlankLayout" } },
   { path: "/404", component: () => import("@/views/errors/NotFoundView.vue"), meta: { requiresAuth: false, layout: "BlankLayout" } },
