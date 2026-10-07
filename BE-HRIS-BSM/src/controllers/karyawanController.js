@@ -2,7 +2,7 @@ import pool from '../config/database.js'
 import { success, error, paginated } from '../helpers/response.js'
 import { buildOrderBy, applyAllColumnFilters } from '../helpers/browse.js'
 import { masaKerjaSQL } from '../helpers/masaKerja.js'
-import { syncKaryawanToTarget, syncStatusToTarget, syncRekeningToTarget, targetForUnit } from '../helpers/syncKaryawan.js'
+import { syncKaryawanToTarget, syncStatusToTarget, syncRekeningToTarget, syncJabatanDeptToTarget, targetForUnit } from '../helpers/syncKaryawan.js'
 
 // Whitelist sort & filter kolom (alias frontend -> kolom SQL)
 // Kolom tanggal dibungkus DATE_FORMAT agar konsisten 'YYYY-MM-DD' di
@@ -371,6 +371,21 @@ export const updateKaryawan = async (req, res, next) => {
                 })
                 .catch((e) => {
                     console.error(`❌ Sync status gagal ${req.params.id}:`, e.message)
+                })
+        }
+
+        // 🔥 Propagasi jabatan & departemen ke 194.33 (fire-and-forget)
+        // (kar_kd_jabat -> kar_jab_kode, kar_kd_dept -> kar_dep_kode) supaya
+        // perubahan di master ikut tampil di Proses/Slip Gaji BSM & N3.
+        if (rows[0]) {
+            syncJabatanDeptToTarget(rows[0])
+                .then((r) => {
+                    if (!r.skipped) {
+                        console.log(`✅ Sync jabatan/dept ${req.params.id} -> ${r.target} (affected=${r.affectedRows})`)
+                    }
+                })
+                .catch((e) => {
+                    console.error(`❌ Sync jabatan/dept gagal ${req.params.id}:`, e.message)
                 })
         }
 

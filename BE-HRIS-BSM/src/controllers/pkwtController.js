@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import { success, error, paginated } from '../helpers/response.js'
-import { buildOrderBy, applyAllColumnFilters } from '../helpers/browse.js'
+import { buildOrderBy, applyAllColumnFilters, dateRangeClause } from '../helpers/browse.js'
 
 // Whitelist sort & filter kolom (alias frontend -> kolom SQL)
 // Kolom tanggal dibungkus DATE_FORMAT agar konsisten 'YYYY-MM-DD'.
@@ -44,14 +44,12 @@ export const getAllPkwt = async (req, res, next) => {
             params.push(`%${search}%`, `%${search}%`, `%${search}%`)
         }
 
-        if (startDate) {
-            whereClause += ' AND a.pkwt_tanggal >= ?'
-            params.push(startDate)
-        }
-
-        if (endDate) {
-            whereClause += ' AND a.pkwt_tanggal <= ?'
-            params.push(endDate)
+        // Filter tanggal (pkwt_tanggal bertipe DATETIME -> batas < end + 1 hari
+        // agar transaksi pada tanggal akhir tetap terlihat)
+        if (startDate || endDate) {
+            const range = dateRangeClause('a.pkwt_tanggal', startDate, endDate)
+            whereClause += range.clause
+            params.push(...range.params)
         }
 
         const baseQuery = `

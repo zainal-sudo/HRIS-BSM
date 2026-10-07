@@ -32,6 +32,23 @@ export const REKENING_VPS = 'kar_no_rekening'
 export const REKENING_TARGET = 'kar_rekeningbank'
 export const REKENING_MAX_LEN = 30
 
+/**
+ * Nama kolom jabatan & departemen berbeda di kedua sisi:
+ *  VPS (103.103.22.7) -> kar_kd_jabat / kar_kd_dept
+ *  194.33             -> kar_jab_kode / kar_dep_kode (hrd & hrd_entri, varchar(10))
+ */
+export const JABATAN_VPS = 'kar_kd_jabat'
+export const DEPT_VPS = 'kar_kd_dept'
+export const JABATAN_TARGET = 'kar_jab_kode'
+export const DEPT_TARGET = 'kar_dep_kode'
+
+/** Trim nilai kode; null/kosong -> null (dipakai jabatan/departemen). */
+function normKode(v) {
+    if (v === null || v === undefined) return null
+    const s = String(v).trim()
+    return s === '' ? null : s
+}
+
 /** Bersihkan nilai rekening: null/kosong/spasi -> null, maksimal 30 char */
 export function normalizeRekening(v) {
     if (v === null || v === undefined) return null
@@ -151,6 +168,33 @@ export async function syncStatusToTarget(vpsRow) {
     const [res] = await pool.queryWithRetry(
         'UPDATE tkaryawan SET kar_status_aktif = ?, kar_tgl_keluar = ? WHERE kar_Nik = ?',
         [aktif, tglKeluar, vpsRow.kar_nik]
+    )
+    return { skipped: false, target, affectedRows: res.affectedRows }
+}
+
+/**
+ * Propagasi jabatan & departemen VPS -> 194.33
+ * (kar_kd_jabat -> kar_jab_kode, kar_kd_dept -> kar_dep_kode).
+ * Dipakai setiap edit master karyawan (PUT /api/karyawan/:id) supaya
+ * perubahan jabatan/departemen ikut ter-update di server 194.33
+ * (dipakai Slip Gaji BSM/N3, Proses Gaji, dll).
+ *
+ * VPS adalah sumber data master, jadi nilai dikirim apa adanya termasuk
+ * null (mis. departemen dikosongkan) — berbeda dengan rekening yang
+ * dilindungi dari NULL.
+ *
+ * @returns {Promise<{skipped:boolean, reason?:string, target?:string, affectedRows?:number}>}
+ */
+export async function syncJabatanDeptToTarget(vpsRow) {
+    const target = targetForUnit(vpsRow.kar_kd_unit)
+    if (!target) return { skipped: true, reason: 'no-target' }
+
+    const jab = normKode(vpsRow[JABATAN_VPS])
+    const dep = normKode(vpsRow[DEPT_VPS])
+    const pool = target === 'hrd' ? poolBsm : poolEntri
+    const [res] = await pool.queryWithRetry(
+        `UPDATE tkaryawan SET ${JABATAN_TARGET} = ?, ${DEPT_TARGET} = ? WHERE kar_Nik = ?`,
+        [jab, dep, vpsRow.kar_nik]
     )
     return { skipped: false, target, affectedRows: res.affectedRows }
 }

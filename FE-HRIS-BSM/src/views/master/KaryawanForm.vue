@@ -41,6 +41,7 @@ const form = reactive({
   kar_kd_dept: null as string | null,
   kar_kd_jabat: null as string | null,
   kar_kd_unit: null as string | null,
+  kar_namaibu: "",
   kar_status_karyawan: "Kontrak",
   kar_sistem_gaji: "",
   kar_status_aktif: 1,
@@ -83,6 +84,7 @@ async function load() {
       kar_kd_dept: d.kar_kd_dept ? String(d.kar_kd_dept) : null,
       kar_kd_jabat: d.kar_kd_jabat ? String(d.kar_kd_jabat) : null,
       kar_kd_unit: d.kar_kd_unit ? String(d.kar_kd_unit) : null,
+      kar_namaibu: d.kar_namaibu || "",
       kar_status_karyawan: d.kar_status_karyawan || "Kontrak",
       kar_sistem_gaji: d.kar_sistem_gaji || "",
       kar_status_aktif: d.kar_status_aktif == null ? 1 : Number(d.kar_status_aktif),
@@ -148,6 +150,7 @@ async function save(): Promise<string> {
       kar_kd_dept: form.kar_kd_dept || null,
       kar_kd_jabat: form.kar_kd_jabat || null,
       kar_kd_unit: form.kar_kd_unit || null,
+      kar_namaibu: form.kar_namaibu || null,
       kar_status_karyawan: form.kar_status_karyawan,
       kar_sistem_gaji: form.kar_sistem_gaji || null,
       kar_status_aktif: Number(form.kar_status_aktif),
@@ -223,6 +226,7 @@ onMounted(() => {
                 />
                 <FText v-model="form.kar_tempatlahir" label="Tempat Lahir" placeholder="Kota kelahiran" />
                 <FDate v-model="form.kar_tgllahir" label="Tanggal Lahir" />
+                <FText v-model="form.kar_namaibu" label="Nama Ibu Kandung" placeholder="Nama ibu kandung" />
                 <FText v-model="form.kar_telp" label="Telepon" placeholder="08xxx" />
                 <FText v-model="form.kar_email" label="Email" placeholder="email@example.com" />
               </div>

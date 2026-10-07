@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import { success, error, paginated } from '../helpers/response.js'
-import { buildOrderBy, applyAllColumnFilters } from '../helpers/browse.js'
+import { buildOrderBy, applyAllColumnFilters, dateRangeClause } from '../helpers/browse.js'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
 
@@ -48,10 +48,11 @@ export const getAllLembur = async (req, res, next) => {
             whereClause = ' WHERE 1=1'
         }
 
-        // Filter tanggal
+        // Filter tanggal (aman untuk kolom DATE/DATETIME: batas < end + 1 hari)
         if (startDate && endDate) {
-            whereClause += ` AND a.lem_tanggal BETWEEN ? AND ?`
-            params.push(startDate, endDate)
+            const range = dateRangeClause('a.lem_tanggal', startDate, endDate)
+            whereClause += range.clause
+            params.push(...range.params)
         }
 
         // Search

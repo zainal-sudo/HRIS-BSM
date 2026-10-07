@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import { success, error, paginated } from '../helpers/response.js'
-import { buildOrderBy, applyAllColumnFilters } from '../helpers/browse.js'
+import { buildOrderBy, applyAllColumnFilters, dateRangeClause } from '../helpers/browse.js'
 import { syncStatusToTarget } from '../helpers/syncKaryawan.js'
 
 /**
@@ -66,10 +66,12 @@ export const getAllKeluar = async (req, res, next) => {
             whereClause = ' WHERE 1=1'
         }
 
-        // Filter tanggal
+        // Filter tanggal (tanggal bertipe DATETIME -> batas < end + 1 hari
+        // agar transaksi pada tanggal akhir tetap terlihat)
         if (startDate && endDate) {
-            whereClause += ` AND a.kl_tanggal BETWEEN ? AND ?`
-            params.push(startDate, endDate)
+            const range = dateRangeClause('a.kl_tanggal', startDate, endDate)
+            whereClause += range.clause
+            params.push(...range.params)
         }
 
         // Search

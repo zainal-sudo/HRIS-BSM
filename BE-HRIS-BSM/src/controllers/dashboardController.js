@@ -382,7 +382,7 @@ export const getAktivitasTerbaru = async (req, res, next) => {
        LEFT JOIN tkaryawan b ON a.kar_nik = b.kar_nik
        WHERE ${kfb.sql}
          AND a.tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-         AND a.tanggal <= CURDATE()
+         AND a.tanggal < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
        
        UNION ALL
        
@@ -396,7 +396,7 @@ export const getAktivitasTerbaru = async (req, res, next) => {
        LEFT JOIN tkaryawan b ON a.lem_kar_nik = b.kar_nik
        WHERE ${kfb.sql}
          AND a.lem_tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-         AND a.lem_tanggal <= CURDATE()
+         AND a.lem_tanggal < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
        
        ORDER BY tanggal DESC
        LIMIT 10`,

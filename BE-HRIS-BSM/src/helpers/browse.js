@@ -28,6 +28,38 @@ export function buildOrderBy(query, allowedMap, defaultOrder) {
 }
 
 /**
+ * Bangun klausa filter rentang tanggal untuk kolom tanggal/datetime.
+ *
+ * PENTING: memakai batas setengah terbuka `>= start AND < end + 1 hari`,
+ * bukan `BETWEEN start AND end`. Kalau kolomnya bertipe DATETIME (mis.
+ * tijin.tanggal, tkeluar.kl_tanggal, tpkwt.pkwt_tanggal) dan user memilih
+ * rentang "1 s/d 6 Oktober", `BETWEEN '2026-10-01' AND '2026-10-06'`
+ * sebenarnya berarti sampai '2026-10-06 00:00:00', sehingga transaksi
+ * tanggal 6 yang jamnya > 00:00 ikut terbuang. Dengan `< end + 1 hari`,
+ * seluruh transaksi di tanggal terakhir tetap muncul.
+ *
+ * Aman untuk kolom DATE maupun DATETIME.
+ *
+ * @param {string} col ekspresi kolom SQL (dari whitelist, bukan input user)
+ * @param {string|null} startDate 'YYYY-MM-DD' atau null
+ * @param {string|null} endDate 'YYYY-MM-DD' atau null
+ * @returns {{ clause: string, params: Array }}
+ */
+export function dateRangeClause(col, startDate, endDate) {
+    let clause = ''
+    const params = []
+    if (startDate) {
+        clause += ` AND ${col} >= ?`
+        params.push(startDate)
+    }
+    if (endDate) {
+        clause += ` AND ${col} < DATE_ADD(?, INTERVAL 1 DAY)`
+        params.push(endDate)
+    }
+    return { clause, params }
+}
+
+/**
  * Terapkan filter per kolom dari query `filter_<Alias>`.
  * @param {string} whereClause klausa WHERE yang sudah ada
  * @param {Array} params parameter yang sudah ada (dikopi, tidak dimutasi)
