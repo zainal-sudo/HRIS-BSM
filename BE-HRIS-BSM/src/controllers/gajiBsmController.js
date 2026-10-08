@@ -3,8 +3,8 @@ import poolUtama from '../config/database.js'
 import { success, error } from '../helpers/response.js'
 import { kirimSlipPdf, smtpTransporter } from '../helpers/smtp.js'
 
-/** Unit payroll BSM hanya PT Bumi Sarana Maju (buang BSM Olshop, Rotiq, dll) */
-const FILTER_UNIT_BSM = "p.pab_nama LIKE 'PT Bumi Sarana Maju%'"
+/** Unit payroll BSM: PT Bumi Sarana Maju + BSM Olshop (buang Rotiq, Entri, dll) */
+const FILTER_UNIT_BSM = "(p.pab_nama LIKE 'PT Bumi Sarana Maju%' OR p.pab_nama = 'BSM Olshop')"
 
 /**
  * PROSES GAJI BSM
@@ -104,7 +104,7 @@ export const getKaryawanBsm = async (req, res, next) => {
       ORDER BY k.kar_Nik`
         )
 
-        success(res, rows, `${rows.length} karyawan aktif unit PT Bumi Sarana Maju dimuat`)
+        success(res, rows, `${rows.length} karyawan aktif unit PT Bumi Sarana Maju + BSM Olshop dimuat`)
 
     } catch (err) {
         next(err)
@@ -210,7 +210,7 @@ export const getAbsensiBsm = async (req, res, next) => {
             return error(res, 'Tanggal awal tidak boleh melewati tanggal akhir', 400)
         }
 
-        // NIK yang boleh masuk proses gaji BSM (unit PT Bumi Sarana Maju)
+        // NIK yang boleh masuk proses gaji BSM (unit PT Bumi Sarana Maju + BSM Olshop)
         const [nikRows] = await poolBsm.queryWithRetry(
             `SELECT k.kar_Nik AS nik
        FROM tkaryawan k
@@ -253,7 +253,7 @@ export const getAbsensiBsm = async (req, res, next) => {
             jumlah: rows.length,
             tanpaData,
             totalNik: nikBsm.size,
-        }, `Rekap absensi ${rows.length} dari ${nikBsm.size} karyawan unit PT Bumi Sarana Maju` +
+        }, `Rekap absensi ${rows.length} dari ${nikBsm.size} karyawan unit PT Bumi Sarana Maju + BSM Olshop` +
             (tanpaData.length > 0 ? `, ${tanpaData.length} karyawan tanpa data absensi` : ''))
 
     } catch (err) {

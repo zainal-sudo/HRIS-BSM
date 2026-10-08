@@ -25,7 +25,7 @@ import {
  * Tersimpan / Simpan -> slip.
  *
  * Catatan:
- *  - Grid hanya untuk unit "PT Bumi Sarana Maju" (BSM Olshop, Rotiq, dll
+ *  - Grid untuk unit "PT Bumi Sarana Maju" + "BSM Olshop" (Rotiq, dll
  *    tidak ikut proses gaji modul ini).
  *  - Kolom Tidak Masuk / Terlambat / Pot. Hari ditarik dari laporan Rekap
  *    Absensi (procedure rekap_absensiv3 di server utama) karena server BSM
@@ -273,7 +273,7 @@ async function muatKaryawan() {
     const list: any[] = data.data || [];
     rows.value = list.map(barisDariMaster);
     adaDataTersimpan.value = null;
-    toast.success(`${rows.value.length} karyawan unit PT Bumi Sarana Maju dimuat`);
+    toast.success(`${rows.value.length} karyawan unit PT Bumi Sarana Maju + BSM Olshop dimuat`);
   } catch (e) {
     toast.error(getErrorMessage(e, "Gagal memuat data karyawan"));
   } finally {
@@ -734,7 +734,7 @@ onMounted(() => {
     <div class="page-head">
       <div>
         <h2 class="page-title">Proses Gaji BSM</h2>
-        <div class="page-sub">Gaji bulanan &amp; tunjangan unit PT Bumi Sarana Maju (server BSM)</div>
+        <div class="page-sub">Gaji bulanan &amp; tunjangan unit PT Bumi Sarana Maju + BSM Olshop (server BSM)</div>
       </div>
       <div class="head-actions">
         <div class="period-inline">
@@ -951,9 +951,9 @@ onMounted(() => {
         <b>Pot. Hari</b> dari Laporan Rekap Absensi; <b>Angsuran</b> masih diisi manual.
         Cutoff absensi mengikuti periode gaji: <b>21 bulan sebelumnya s/d 20 bulan terpilih</b>
         (mis. gaji September 2026 memakai absensi 21/08/2026 - 20/09/2026) — tombol
-        <b>Cutoff 21-20</b> mengembalikan rentang ke aturan itu. Proses ini khusus unit
-        <b>PT Bumi Sarana Maju</b> (BSM Olshop, Rotiq, dan unit lain tidak ikut). Menyimpan akan
-        menghapus data periode ini lalu menyimpan ulang.
+        <b>Cutoff 21-20</b> mengembalikan rentang ke aturan itu. Proses ini untuk unit
+        <b>PT Bumi Sarana Maju</b> dan <b>BSM Olshop</b> (Rotiq, dan unit lain tidak ikut).
+        Menyimpan akan menghapus data periode ini lalu menyimpan ulang.
       </div>
     </div>
 
@@ -978,8 +978,8 @@ onMounted(() => {
           </div>
           <div v-else>Belum ada data tersimpan pada periode ini.</div>
           <div class="text-caption mt-2">
-            Hanya karyawan unit <b>PT Bumi Sarana Maju</b> yang tersimpan. Karyawan unit lain
-            (mis. BSM Olshop) yang ada di periode ini akan ikut terhapus.
+            Hanya karyawan unit <b>PT Bumi Sarana Maju</b> dan <b>BSM Olshop</b> yang tersimpan.
+            Karyawan unit lain (mis. Rotiq) yang ada di periode ini akan ikut terhapus.
           </div>
         </v-card-text>
         <v-card-actions class="pa-4 pt-2">
