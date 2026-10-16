@@ -9,6 +9,7 @@ import { formatNumber } from "@/utils/format";
 import { sortByKey, nextSort, sortIconName, type SortDir } from "@/utils/table";
 import ColumnFilterPopup from "@/components/ColumnFilterPopup.vue";
 import JSZip from "jszip";
+import { exportRowsToXlsx } from "@/utils/excel";
 import {
   folderApiTersedia,
   muatFolder,
@@ -490,6 +491,33 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+async function exportExcel() {
+  if (sortedRows.value.length === 0) return;
+  const columns = [
+    "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
+    "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
+    "Hari Insentif", "Insentif", "PPh21", "BPJS Kesehatan", "BPJS TK",
+    "Simpanan Koperasi", "Cicilan", "Hari Potong", "Potong Gaji",
+    "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
+  ];
+  try {
+    await exportRowsToXlsx(
+      columns.map((label) => ({ label })),
+      sortedRows.value.map((r) => [
+        r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
+        num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
+        num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.bpjskesehatan),
+        num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.haripotong),
+        num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
+      ]),
+      `gaji-pkrt_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
+    );
+    toast.success(`${sortedRows.value.length} baris berhasil di-export ke Excel`);
+  } catch {
+    toast.error("Gagal export Excel");
+  }
+}
+
 const slipRows = computed(() => sortedRows.value as any);
 
 function cetakSemua() {
@@ -822,6 +850,9 @@ onMounted(() => {
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="exportCsv">
           <MsIcon name="download" :size="15" /> Export CSV
+        </button>
+        <button class="btn" :disabled="rows.length === 0" @click="exportExcel">
+          <MsIcon name="download" :size="15" /> Export Excel
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="cetakSemua">
           <MsIcon name="print" :size="15" /> Cetak Semua Slip

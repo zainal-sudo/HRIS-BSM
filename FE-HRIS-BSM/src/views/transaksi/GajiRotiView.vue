@@ -8,6 +8,7 @@ import { formatNumber } from "@/utils/format";
 import { sortByKey, nextSort, sortIconName, filterByValueSets, distinctValues, type SortDir } from "@/utils/table";
 import ColumnFilterPopup from "@/components/ColumnFilterPopup.vue";
 import JSZip from "jszip";
+import { exportRowsToXlsx } from "@/utils/excel";
 import {
   folderApiTersedia,
   muatFolder,
@@ -421,6 +422,28 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+async function exportExcel() {
+  if (sortedRows.value.length === 0) return;
+  const columns = [
+    "NIK", "Nama", "Jabatan", "Unit", "Masuk", "Potong Gaji", "Jam Lembur",
+    "Gaji per Hari", "Gaji Pokok", "Lembur per Jam", "Lembur", "Punishment", "Rekening", "Total",
+  ];
+  try {
+    await exportRowsToXlsx(
+      columns.map((label) => ({ label })),
+      sortedRows.value.map((r) => [
+        r.nik, r.nama, r.jabatan, r.unit, num(r.masuk), num(r.potonggaji), num(r.jamlembur),
+        num(r.gajiperhari), num(r.gapok), num(r.lemburperjam), num(r.lembur), num(r.punishment),
+        r.rekening, num(r.total),
+      ]),
+      `gaji-roti_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
+    );
+    toast.success(`${sortedRows.value.length} baris berhasil di-export ke Excel`);
+  } catch {
+    toast.error("Gagal export Excel");
+  }
+}
+
 function cetakSlip(list: SlipGajiItem[]) {
   if (list.length === 0) {
     toast.warning("Tidak ada slip untuk dicetak");
@@ -739,6 +762,9 @@ onMounted(() => {
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="exportCsv">
           <MsIcon name="download" :size="15" /> Export CSV
+        </button>
+        <button class="btn" :disabled="rows.length === 0" @click="exportExcel">
+          <MsIcon name="download" :size="15" /> Export Excel
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="cetakSemua">
           <MsIcon name="print" :size="15" /> Cetak Semua Slip

@@ -8,6 +8,7 @@ import { api, getErrorMessage } from "@/api/axios";
 import { useTabsStore } from "@/stores/tabsStore";
 import { formatDateInput, todaySql } from "@/utils/format";
 import { fotoUrl } from "@/utils/foto";
+import { exportRowsToXlsx } from "@/utils/excel";
 
 export interface BrowseColumn {
   key: string;
@@ -42,6 +43,10 @@ const props = withDefaults(
     defaultStart?: string;
     /** Jumlah baris per halaman. Naikkan turunkan sesuai kepadatan tabel. */
     perPage?: number;
+    /** Tampilkan tombol export Excel (.xlsx). Default true. */
+    exportable?: boolean;
+    /** Nama file export tanpa ekstensi. Default dari judul modul + periode. */
+    exportFileName?: string;
   }>(),
   {
     moduleSubtitle: "",
@@ -53,6 +58,7 @@ const props = withDefaults(
     canDelete: true,
     printable: false,
     perPage: 25,
+    exportable: true,
   }
 );
 
@@ -164,22 +170,28 @@ const deleteDialog = ref(false);
 const deletingKey = ref<string | null>(null);
 const deletingLabel = ref("");
 
+/** Parameter query browse (search + sort + filter kolom + periode). */
+function queryParams(pageNum: number, perPageNum: number): Record<string, any> {
+  const params: Record<string, any> = { page: pageNum, per_page: perPageNum };
+  if (search.value.trim()) params.search = search.value.trim();
+  if (sortBy.value && sortDir.value) {
+    params.sort_by = sortBy.value;
+    params.sort_dir = sortDir.value;
+  }
+  for (const [k, arr] of Object.entries(filterSets)) {
+    if (Array.isArray(arr) && arr.length > 0) params[`filterSet_${k}`] = arr;
+  }
+  if (props.hasPeriod && startDate.value && endDate.value) {
+    params[props.periodStartKey] = startDate.value;
+    params[props.periodEndKey] = endDate.value;
+  }
+  return params;
+}
+
 async function fetchData() {
   loading.value = true;
   try {
-    const params: Record<string, any> = { page: page.value, per_page: perPage.value };
-    if (search.value.trim()) params.search = search.value.trim();
-    if (sortBy.value && sortDir.value) {
-      params.sort_by = sortBy.value;
-      params.sort_dir = sortDir.value;
-    }
-    for (const [k, arr] of Object.entries(filterSets)) {
-      if (Array.isArray(arr) && arr.length > 0) params[`filterSet_${k}`] = arr;
-    }
-    if (props.hasPeriod && startDate.value && endDate.value) {
-      params[props.periodStartKey] = startDate.value;
-      params[props.periodEndKey] = endDate.value;
-    }
+    const params = queryParams(page.value, perPage.value);
     const { data } = await api.get(props.endpoint, { params });
     rows.value = data.data || [];
     // Foto yang sebelumnya gagal dimuat dicoba ulang — berkasnya bisa saja
@@ -210,6 +222,82 @@ function onSearch() {
 
 function refresh() {
   fetchData();
+}
+
+// ── Export Excel (.xlsx) ──
+// Mengambil SEMUA data sesuai filter aktif (bukan hanya halaman ini)
+// lalu mengunduhnya sebagai file Excel. Kolom foto dilewati.
+const exporting = ref(false);
+
+function exportValue(row: Record<string, any>, col: BrowseColumn): string | number {
+  const v = row[col.key];
+  if (v === null || v === undefined || v === "") return "";
+  if (col.type === "image") return "";
+  if (col.type === "date") {
+    return typeof v === "string" ? v.slice(0, 10) : formatDateInput(v);
+  }
+  if (col.type === "datetime") {
+    return typeof v === "string" ? v.replace("T", " ").slice(0, 16) : String(v);
+  }
+  if (col.type === "number" || col.type === "align-right") {
+    const n = Number(v);
+    if (!isNaN(n)) return n;
+  }
+  return String(v);
+}
+
+function defaultExportName(): string {
+  const slug = props.moduleTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40) || "data";
+  const period =
+    props.hasPeriod && startDate.value && endDate.value
+      ? `_${startDate.value}_${endDate.value}`
+      : `_${todaySql()}`;
+  return `${slug}${period}`;
+}
+
+async function exportExcel() {
+  if (exporting.value) return;
+  exporting.value = true;
+  try {
+    // Ambil semua halaman sesuai filter aktif (1000 baris per request).
+    const all: Record<string, any>[] = [];
+    let pg = 1;
+    let last = 1;
+    do {
+      const { data } = await api.get(props.endpoint, {
+        params: queryParams(pg, 1000),
+      });
+      const list: Record<string, any>[] = data.data || [];
+      all.push(...list);
+      const p = data.pagination;
+      last = p?.last_page || 1;
+      pg += 1;
+    } while (pg <= last);
+
+    if (all.length === 0) {
+      toast.warning("Tidak ada data untuk di-export");
+      return;
+    }
+
+    const exportCols = props.columns.filter((c) => c.type !== "image");
+    await exportRowsToXlsx(
+      [{ label: "No", width: 6 }, ...exportCols.map((c) => ({ label: c.label }))],
+      all.map((row, i) => [
+        i + 1,
+        ...exportCols.map((c) => exportValue(row, c)),
+      ]),
+      props.exportFileName || defaultExportName()
+    );
+    toast.success(`${all.length} baris berhasil di-export ke Excel`);
+  } catch (e: any) {
+    toast.error(getErrorMessage(e, "Gagal export Excel"));
+  } finally {
+    exporting.value = false;
+  }
 }
 
 function goToPage(p: number) {
@@ -366,6 +454,17 @@ onMounted(() => {
 
         <button class="tool-btn ghost" title="Muat ulang" @click="refresh">
           <MsIcon name="refresh" :size="15" />
+        </button>
+
+        <button
+          v-if="exportable"
+          class="tool-btn ghost"
+          title="Export ke Excel (.xlsx) sesuai filter aktif"
+          :disabled="exporting || loading"
+          @click="exportExcel"
+        >
+          <MsIcon name="download" :size="15" />
+          <span>{{ exporting ? "Mengekspor..." : "Excel" }}</span>
         </button>
 
         <button v-if="addFormPath" class="tool-btn primary" @click="addNew">
