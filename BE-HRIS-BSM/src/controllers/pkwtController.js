@@ -173,9 +173,23 @@ export const getKaryawanDetail = async (req, res, next) => {
     } catch (err) { next(err) }
 }
 
+// Pastikan nomor unik: jika sudah ada, naikkan angka prefix-nya sampai bebas
+// (melindungi dari 2 form yang dibuka bersamaan & memakai nomor yang sama)
+const resolveUniqueNomor = async (client, nomor) => {
+    let current = nomor
+    while (true) {
+        const [ex] = await client.query('SELECT 1 FROM tpkwt WHERE pkwt_nomor = ? LIMIT 1', [current])
+        if (ex.length === 0) return current
+        const m = current.match(/^(\d+)(-.*)$/)
+        if (!m) throw Object.assign(new Error(`Nomor PKWT "${nomor}" sudah dipakai`), { status: 409 })
+        current = `${String(parseInt(m[1]) + 1).padStart(m[1].length, '0')}${m[2]}`
+    }
+}
+
 export const createPkwt = async (req, res, next) => {
     try {
         const data = req.body
+        data.pkwt_nomor = await resolveUniqueNomor(pool, data.pkwt_nomor)
 
         let karPkwt = data.pkwt_kar_status2
         if (data.pkwt_kar_status2 === 'PKWT' && data.pkwt_ke) {
