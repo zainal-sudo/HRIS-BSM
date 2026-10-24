@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 import { success, error } from '../helpers/response.js'
-import { FILTER_UNIT_PKRT, FILTER_JABATAN_GAJI_PKRT } from '../helpers/pkrt.js'
+import { FILTER_UNIT_PKRT, FILTER_UNIT_PKRT_SUB, FILTER_JABATAN_GAJI_PKRT } from '../helpers/pkrt.js'
 
 /**
  * SETTING GAJI PKRT
@@ -161,7 +161,7 @@ export const saveSettingGajiPkrt = async (req, res, next) => {
         SET ${setSql}
         WHERE kar_nik = ?
           AND kar_status_aktif = 1
-          AND kar_kd_unit IN (SELECT kd_unit FROM tunit WHERE ${FILTER_UNIT_PKRT})`,
+          AND kar_kd_unit IN (SELECT kd_unit FROM tunit WHERE ${FILTER_UNIT_PKRT_SUB})`,
                 [...Object.keys(EDITABLE_COLUMNS).map((k) => r[k]), r.nik]
             )
         }

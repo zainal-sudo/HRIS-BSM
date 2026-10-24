@@ -22,6 +22,7 @@
 
 /** Filter unit payroll PKRT (dipakai di SETELUH query modul ini). */
 export const FILTER_UNIT_PKRT = "u.nm_unit LIKE '%PKRT%'"
+export const FILTER_UNIT_PKRT_SUB = "nm_unit LIKE '%PKRT%'"
 
 /**
  * Jabatan yang tidak diikutkan di Setting Gaji PKRT & Proses Gaji PKRT
