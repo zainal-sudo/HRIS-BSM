@@ -1,10 +1,19 @@
 export function formatDateToSql(d: Date | string | null): string {
   if (!d) return "";
-  const date = typeof d === "string" ? new Date(d) : d;
-  if (isNaN(date.getTime())) return "";
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  if (typeof d === "string") {
+    const text = d.trim();
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+    const parsed = new Date(text);
+    if (isNaN(parsed.getTime())) return "";
+    const y = parsed.getFullYear();
+    const mth = String(parsed.getMonth() + 1).padStart(2, "0");
+    const day = String(parsed.getDate()).padStart(2, "0");
+    return `${y}-${mth}-${day}`;
+  }
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 

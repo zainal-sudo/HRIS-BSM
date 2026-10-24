@@ -47,7 +47,7 @@ const batchRows = ref<BatchRow[]>([]);
 
 const isValid = computed(() => {
   if (inputMode.value === "single") {
-    return form.kar_nik && form.tanggal && form.jamMulai && form.jamAkhir;
+    return form.tanggal && form.jamMulai && form.jamAkhir;
   }
   return (
     form.tanggal &&
@@ -331,12 +331,13 @@ onMounted(() => {
                 </div>
                 <div class="lookup-field">
                   <label>NIK <span class="req">*</span></label>
-                  <KaryawanLookup
-                    :model-value="form.kar_nik"
-                    :display-name="form.kar_nama || (form.kar_nik || '')"
-                    @update:display-name="form.kar_nama = $event"
-                    @select="onKaryawanSelect"
-                  />
+                    <KaryawanLookup
+                      v-model="form.kar_nik"
+                      :display-name="form.kar_nama || (form.kar_nik || '')"
+                      @update:model-value="form.kar_nik = $event"
+                      @update:display-name="form.kar_nama = $event"
+                      @select="onKaryawanSelect"
+                    />
                 </div>
                 <div class="field">
                   <label>Nama</label>
@@ -439,6 +440,7 @@ onMounted(() => {
                           :display-name="row.nama || row.nik || ''"
                           :label="`Baris ${i + 1}`"
                           :placeholder="'Pilih karyawan'"
+                          @update:model-value="row.nik = $event"
                           @update:display-name="row.nama = $event"
                           @select="onBatchPick(row, $event)"
                         />

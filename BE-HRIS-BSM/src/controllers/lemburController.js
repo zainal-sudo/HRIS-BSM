@@ -69,7 +69,7 @@ export const getAllLembur = async (req, res, next) => {
         c.nm_jabat AS Jabatan,
         d.nm_dept AS Departmen,
         e.nm_unit AS Unit,
-        a.lem_tanggal AS Tanggal,
+        DATE_FORMAT(a.lem_tanggal, '%Y-%m-%d') AS Tanggal,
         a.lem_jammulai AS JamMulai,
         a.lem_jamakhir AS JamAkhir,
         a.lem_keterangan AS Keterangan,
