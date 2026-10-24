@@ -8,8 +8,8 @@
  *                  Tunjangan Makan, (Total = THP), Rupiah Lembur,
  *                  Insentif Shift Malam
  *   Potongan     : PPh21, BPJS Kesehatan, BPJS Ketenagakerjaan,
- *                  Simpanan Kop, Cicilan, Potong Gaji
- *   Hasil        : (Total Potongan), GAJI
+ *                  Simpanan Kop, Cicilan, Angsuran, Potong Gaji
+ *   Hasil        : (Total Potongan), GAJI, + info Simpanan Pokok
  *
  * Satu slip per halaman A4, bisa cetak banyak sekaligus.
  * PDF ditulis sebagai teks vektor (kecil, tajam dicetak).
@@ -34,6 +34,8 @@ export interface SlipGajiPkrtItem {
   bpjstk: number;
   simpankoperasi: number;
   cicilan: number;
+  angsuran?: number;
+  simpananpokok?: number;
   haripotong?: number;
   nominalpotgaji?: number;
   potongan?: number;
@@ -107,7 +109,7 @@ function rincian(r: SlipGajiPkrtItem) {
 
   const potongan =
     n(r.pph21) + n(r.bpjskesehatan) + n(r.bpjstk) +
-    n(r.simpankoperasi) + n(r.cicilan) + nominalpotgaji;
+    n(r.simpankoperasi) + n(r.cicilan) + n(r.angsuran) + nominalpotgaji;
 
   const gaji = Number(r.gaji) || (thp + lembur + insentif - potongan);
 
@@ -160,6 +162,7 @@ const rowHtml = (r: SlipGajiPkrtItem): string => {
         ${baris("BPJS KETENAGAKERJAAN", fmt(r.bpjstk))}
         ${baris("SIMPANAN KOPERASI", fmt(r.simpankoperasi))}
         ${baris("CICILAN", fmt(r.cicilan))}
+        ${baris("ANGSURAN", fmt(r.angsuran))}
         ${baris("POTONG GAJI", fmt(x.nominalpotgaji))}
       </div>
 
@@ -167,6 +170,10 @@ const rowHtml = (r: SlipGajiPkrtItem): string => {
         ${baris("TOTAL PENGHASILAN (THP)", fmt(x.thp), "t")}
         ${baris("TOTAL POTONGAN", fmt(x.potongan))}
         ${baris("TOTAL GAJI", fmt(x.gaji), "t")}
+      </div>
+
+      <div class="box">
+        ${baris("SIMPANAN POKOK", fmt(r.simpananpokok))}
       </div>
 
       <div class="box">
@@ -305,6 +312,7 @@ async function renderPdfBlob(r: SlipGajiPkrtItem): Promise<{ blob: Blob; filenam
     baris("BPJS KETENAGAKERJAAN", fmt(r.bpjstk));
     baris("SIMPANAN KOPERASI", fmt(r.simpankoperasi));
     baris("CICILAN", fmt(r.cicilan));
+    baris("ANGSURAN", fmt(r.angsuran));
     baris("POTONG GAJI", fmt(x.nominalpotgaji));
   });
 
@@ -312,6 +320,10 @@ async function renderPdfBlob(r: SlipGajiPkrtItem): Promise<{ blob: Blob; filenam
     baris("TOTAL PENGHASILAN (THP)", fmt(x.thp), { bold: true, h: 7 });
     baris("TOTAL POTONGAN", fmt(x.potongan), { h: 7 });
     baris("TOTAL GAJI", fmt(x.gaji), { bold: true, size: 12.5, h: 7.5 });
+  });
+
+  kotak(() => {
+    baris("SIMPANAN POKOK", fmt(r.simpananpokok));
   });
 
   kotak(() => {

@@ -86,6 +86,13 @@ function sortIcon(key: string) {
   return sortIconName(key, sortBy.value, sortDir.value);
 }
 
+/** Kolom kiri yang di-freeze saat grid digeser ke kanan */
+function frozenCls(key: string) {
+  if (key === "nik") return "frozen frozen-2";
+  if (key === "nama") return "frozen frozen-3";
+  return "";
+}
+
 const sortedRows = computed(() => {
   if (!sortBy.value || !sortDir.value) return filteredRows.value;
   return sortByKey(filteredRows.value, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGaji]);
@@ -814,12 +821,12 @@ onMounted(() => {
         <table class="data-table">
           <thead>
             <tr>
-              <th class="c" style="width: 34px">No</th>
+              <th class="c frozen frozen-1" style="width: 34px">No</th>
               <th
                 v-for="(c, idx) in sortableColumns"
                 :key="c.key"
                 class="sortable"
-                :class="[{ sorted: sortBy === c.key }, c.align]"
+                :class="[{ sorted: sortBy === c.key }, c.align, frozenCls(c.key)]"
                 :style="{ width: c.width }"
                 title="Klik untuk mengurutkan"
                 @click="toggleSort(c.key)"
@@ -858,9 +865,9 @@ onMounted(() => {
               </td>
             </tr>
             <tr v-for="(r, i) in sortedRows" :key="r.nik">
-              <td class="c">{{ i + 1 }}</td>
-              <td>{{ r.nik }}</td>
-              <td :title="r.nama">{{ r.nama }}</td>
+              <td class="c frozen frozen-1">{{ i + 1 }}</td>
+              <td class="frozen frozen-2">{{ r.nik }}</td>
+              <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>
               <td :title="r.jabatan">
                 {{ r.jabatan }}
                 <span v-if="isLeader(r.jabatan)" class="chip">LEADER</span>
@@ -885,7 +892,7 @@ onMounted(() => {
           </tbody>
           <tfoot v-if="rows.length > 0">
             <tr>
-              <td colspan="5" class="r strong">TOTAL</td>
+              <td colspan="5" class="r strong frozen frozen-1">TOTAL</td>
               <td class="c strong">{{ fmt(total.masuk) }}</td>
               <td class="c strong">{{ fmt(total.potonggaji) }}</td>
               <td class="c strong">{{ fmt(total.jamlembur, 1) }}</td>
@@ -1206,9 +1213,14 @@ export default {
   max-height: 58vh;
 }
 .data-table {
-  width: 100%;
+  width: max-content;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 11px;
+}
+.data-table th,
+.data-table td {
+  box-sizing: border-box;
 }
 .data-table th {
   position: sticky;
@@ -1292,6 +1304,30 @@ th.sorted .th-sort {
   background: #eef2f9;
   font-weight: 700;
 }
+/* Freeze kolom No / NIK / Nama saat grid digeser ke kanan */
+.data-table th.frozen {
+  z-index: 3;
+  box-shadow: inset -1px 0 0 #1b2d4a;
+}
+.data-table td.frozen {
+  position: sticky;
+  z-index: 1;
+  background-color: #fff;
+  box-shadow: inset -1px 0 0 #d7dde5;
+}
+.data-table tbody tr:nth-child(even) td.frozen {
+  background-color: #f4f6fa;
+}
+.data-table tbody tr:hover td.frozen {
+  background-color: #e9eef7;
+}
+.data-table tfoot td.frozen {
+  z-index: 4;
+  background-color: #eef2f9;
+}
+.data-table .frozen-1 { left: 0; }
+.data-table .frozen-2 { left: 34px; }
+.data-table .frozen-3 { left: 134px; }
 .c { text-align: center; }
 .r { text-align: right; }
 .strong { font-weight: 800; }

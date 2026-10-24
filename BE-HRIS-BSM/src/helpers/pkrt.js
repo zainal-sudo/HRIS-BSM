@@ -12,12 +12,14 @@
  *                         (jml hari insentif shift malam)
  *   S  nominal pot gaji  = (R / 25) * H
  *                         (jml hari dipot)
- *   T  gaji              = H + J + L - M - N - O - P - Q - S
+ *   T  gaji              = H + J + L - M - N - O - P - Q - Angsuran - S
  *   U  gaji (bulat)      = ROUND(T, 0)
  *
  * Kolom M..Q (PPh21, BPJS Kesehatan, BPJS Ketenagakerjaan, Simpanan Kop,
  * Cicilan) TIDAK dihitung di sini: nilainya per karyawan dan disimpan di
- * tkaryawan lewat menu Master > Setting Gaji PKRT.
+ * tkaryawan lewat menu Master > Setting Gaji PKRT. Angsuran diikutkan ke
+ * Total Potongan, sedangkan Simpanan Pokok hanya informasi koperasi
+ * (tampil di slip) dan tidak mengurangi gaji — sama seperti modul N3.
  */
 
 /** Filter unit payroll PKRT (dipakai di SETELUH query modul ini). */
@@ -54,7 +56,7 @@ export const num = (v) => {
  *
  * Kolom yang dipakai: gapok, tjabatan, tkompetensi, tmakan, poin,
  * hariinsentif, haripotong, pph21, bpjskesehatan, bpjstk,
- * simpankoperasi, cicilan.
+ * simpankoperasi, cicilan, angsuran (+ simpananpokok hanya info).
  */
 export function hitungGajiPkrt(r) {
     const gapok = num(r.gapok)
@@ -74,6 +76,7 @@ export function hitungGajiPkrt(r) {
         num(r.bpjstk) +
         num(r.simpankoperasi) +
         num(r.cicilan) +
+        num(r.angsuran) +
         nominalpotgaji
 
     const gaji = thp + lembur + insentif - potongan

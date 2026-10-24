@@ -27,13 +27,16 @@ import {
  *   Rupiah Lembur  = Poin / 173 * THP
  *   Insentif       = Hari Insentif * 7.000
  *   Potong Gaji    = Hari Potong / 25 * THP
- *   Total Potongan = PPh21 + BPJS Kes + BPJS TK + Simpanan Kop + Cicilan + Potong Gaji
+ *   Total Potongan = PPh21 + BPJS Kes + BPJS TK + Simpanan Kop + Cicilan
+ *                    + Angsuran + Potong Gaji   (Angsuran ikut potongan)
  *   Gaji           = THP + Lembur + Insentif - Total Potongan  (dibulatkan)
  *
  * Kolom "Hari Potong" ditarik dari Rekap Absensi (field "Potong_Gaji"),
- * sedangkan Poin, Hari Insentif, PPh21 & Cicilan diinput manual di grid
- * (nilai awal PPh21 & Cicilan tetap diambil dari master Setting Gaji PKRT,
- * lalu boleh disesuaikan untuk periode ini). Sisanya mengikuti master.
+ * sedangkan Poin, Hari Insentif, PPh21, Cicilan, Angsuran & Simpanan Pokok
+ * diinput manual di grid (nilai awal PPh21 & Cicilan tetap diambil dari
+ * master Setting Gaji PKRT, lalu boleh disesuaikan untuk periode ini).
+ * Simpanan Pokok hanya informasi koperasi (tampil di slip), mengikuti
+ * pola Proses Gaji N3. Sisanya mengikuti master.
  */
 
 interface RowGajiPkrt {
@@ -52,6 +55,8 @@ interface RowGajiPkrt {
   bpjstk: number;
   simpankoperasi: number;
   cicilan: number;
+  simpananpokok: number;
+  angsuran: number;
   poin: number;
   hariinsentif: number;
   haripotong: number;
@@ -108,6 +113,13 @@ function toggleSort(key: string) {
 
 function sortIcon(key: string) {
   return sortIconName(key, sortBy.value, sortDir.value);
+}
+
+/** Kolom kiri yang di-freeze saat grid digeser ke kanan */
+function frozenCls(key: string) {
+  if (key === "nik") return "frozen frozen-2";
+  if (key === "nama") return "frozen frozen-3";
+  return "";
 }
 
 const kataKunci = ref("");
@@ -192,6 +204,7 @@ function recalc(r: RowGajiPkrt) {
     num(r.bpjstk) +
     num(r.simpankoperasi) +
     num(r.cicilan) +
+    num(r.angsuran) +
     nominalpotgaji;
   const gaji = thp + lembur + insentif - potongan;
   r.thp = thp;
@@ -204,7 +217,14 @@ function recalc(r: RowGajiPkrt) {
 }
 
 /** Kolom yang diketik manual di grid (dirender sebagai CurrencyInput) */
-type KolomManual = "poin" | "hariinsentif" | "haripotong" | "pph21" | "cicilan";
+type KolomManual =
+  | "poin"
+  | "hariinsentif"
+  | "haripotong"
+  | "pph21"
+  | "cicilan"
+  | "angsuran"
+  | "simpananpokok";
 
 /** Tulis nilai kolom manual lalu hitung ulang semua kolom turunan. */
 function isiManual(r: RowGajiPkrt, key: KolomManual, v: number) {
@@ -220,6 +240,7 @@ const total = computed(() => {
     gapok: 0, tunjangan: 0, thp: 0, lembur: 0, insentif: 0,
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
     bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
+    simpananpokok: 0, angsuran: 0,
     nominalpotgaji: 0,
   };
   for (const r of sortedRows.value) {
@@ -230,11 +251,13 @@ const total = computed(() => {
     t.insentif += num(r.insentif);
     t.pph21 += num(r.pph21);
     t.bpjs += num(r.bpjskesehatan) + num(r.bpjstk);
-    t.lainnya += num(r.simpankoperasi) + num(r.cicilan);
+    t.lainnya += num(r.simpankoperasi) + num(r.cicilan) + num(r.angsuran);
     t.bpjskesehatan += num(r.bpjskesehatan);
     t.bpjstk += num(r.bpjstk);
     t.simpankoperasi += num(r.simpankoperasi);
     t.cicilan += num(r.cicilan);
+    t.angsuran += num(r.angsuran);
+    t.simpananpokok += num(r.simpananpokok);
     t.nominalpotgaji += num(r.nominalpotgaji);
     t.potongan += num(r.potongan);
     t.gaji += num(r.gajibulat);
@@ -290,6 +313,8 @@ function barisDari(d: any): RowGajiPkrt {
     bpjstk: num(d.bpjstk),
     simpankoperasi: num(d.simpankoperasi),
     cicilan: num(d.cicilan),
+    simpananpokok: num(d.simpananpokok),
+    angsuran: num(d.angsuran),
     poin: num(d.poin),
     hariinsentif: num(d.hariinsentif),
     haripotong: num(d.haripotong),
@@ -449,6 +474,8 @@ async function simpan() {
         bpjstk: num(r.bpjstk),
         simpankoperasi: num(r.simpankoperasi),
         cicilan: num(r.cicilan),
+        simpananpokok: num(r.simpananpokok),
+        angsuran: num(r.angsuran),
       })),
     };
     const { data } = await api.post("/gaji-pkrt/simpan", payload);
@@ -467,15 +494,16 @@ function exportCsv() {
     "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
     "Hari Insentif", "Insentif", "PPh21", "BPJS Kesehatan", "BPJS TK",
-    "Simpanan Koperasi", "Cicilan", "Hari Potong", "Potong Gaji",
-    "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
+    "Simpanan Koperasi", "Cicilan", "Angsuran", "Simpanan Pokok", "Hari Potong",
+    "Potong Gaji", "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
   ];
   const lines = sortedRows.value.map((r) =>
     [
       r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
       num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
       num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.bpjskesehatan),
-      num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.haripotong),
+      num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.angsuran),
+      num(r.simpananpokok), num(r.haripotong),
       num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -497,8 +525,8 @@ async function exportExcel() {
     "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
     "Hari Insentif", "Insentif", "PPh21", "BPJS Kesehatan", "BPJS TK",
-    "Simpanan Koperasi", "Cicilan", "Hari Potong", "Potong Gaji",
-    "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
+    "Simpanan Koperasi", "Cicilan", "Angsuran", "Simpanan Pokok", "Hari Potong",
+    "Potong Gaji", "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
   ];
   try {
     await exportRowsToXlsx(
@@ -507,7 +535,8 @@ async function exportExcel() {
         r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
         num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
         num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.bpjskesehatan),
-        num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.haripotong),
+        num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.angsuran),
+        num(r.simpananpokok), num(r.haripotong),
         num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
       ]),
       `gaji-pkrt_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
@@ -742,6 +771,8 @@ const editableColumns = [
   { key: "haripotong", label: "Hari Potong", width: "90px", align: "c" },
   { key: "pph21", label: "PPh21", width: "95px", align: "c" },
   { key: "cicilan", label: "Cicilan", width: "95px", align: "c" },
+  { key: "angsuran", label: "Angsuran", width: "95px", align: "c" },
+  { key: "simpananpokok", label: "Simpanan Pokok", width: "115px", align: "c" },
 ] as const;
 
 interface Kolom {
@@ -906,12 +937,12 @@ onMounted(() => {
         <table class="data-table">
           <thead>
             <tr>
-              <th class="c" style="width: 34px">No</th>
+              <th class="c frozen frozen-1" style="width: 34px">No</th>
               <th
                 v-for="(c, idx) in sortableColumns"
                 :key="c.key"
                 class="sortable"
-                :class="[{ sorted: sortBy === c.key }, c.align]"
+                :class="[{ sorted: sortBy === c.key }, c.align, frozenCls(c.key)]"
                 :style="{ width: c.width }"
                 title="Klik untuk mengurutkan"
                 @click="toggleSort(c.key)"
@@ -942,18 +973,18 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="19" class="row-empty">Memuat data...</td>
+              <td :colspan="21" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="19" class="row-empty">
+              <td :colspan="21" class="row-empty">
                 Belum ada data. Klik <b>Muat Karyawan</b> untuk memuat master, atau
                 <b>Muat Tersimpan</b> untuk membuka periode {{ periodeLabel }}.
               </td>
             </tr>
             <tr v-for="(r, i) in sortedRows" :key="r.nik">
-              <td class="c">{{ i + 1 }}</td>
-              <td>{{ r.nik }}</td>
-              <td :title="r.nama">{{ r.nama }}</td>
+              <td class="c frozen frozen-1">{{ i + 1 }}</td>
+              <td class="frozen frozen-2">{{ r.nik }}</td>
+              <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>
               <td :title="r.jabatan">{{ r.jabatan || "-" }}</td>
               <td class="r strong">{{ fmt(r.thp) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
@@ -1002,6 +1033,22 @@ onMounted(() => {
                 />
               </td>
               <td class="c">
+                <CurrencyInput
+                  :model-value="r.angsuran"
+                  class="cell-input"
+                  title="Angsuran periode ini — boleh diisi manual (ikut Total Potongan)"
+                  @update:model-value="(v) => isiManual(r, 'angsuran', v)"
+                />
+              </td>
+              <td class="c">
+                <CurrencyInput
+                  :model-value="r.simpananpokok"
+                  class="cell-input"
+                  title="Simpanan Pokok — informasi koperasi, tidak mengurangi Total Potongan"
+                  @update:model-value="(v) => isiManual(r, 'simpananpokok', v)"
+                />
+              </td>
+              <td class="c">
                 <button class="row-btn" title="Cetak slip gaji karyawan ini" @click="cetakSatu(r)">
                   <MsIcon name="print" :size="13" />
                 </button>
@@ -1010,7 +1057,7 @@ onMounted(() => {
           </tbody>
           <tfoot v-if="rows.length > 0">
             <tr>
-              <td colspan="4" class="r strong">TOTAL</td>
+              <td colspan="4" class="r strong frozen frozen-1">TOTAL</td>
               <td class="r strong">{{ fmt(total.thp) }}</td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.insentif) }}</td>
@@ -1025,6 +1072,8 @@ onMounted(() => {
               <td></td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
               <td class="r strong">{{ fmt(total.cicilan) }}</td>
+              <td class="r strong">{{ fmt(total.angsuran) }}</td>
+              <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -1032,15 +1081,18 @@ onMounted(() => {
       </div>
       <div class="table-note">
         <MsIcon name="info" :size="13" />
-        Kolom <b>Poin / Hari Insentif / PPh21 / Cicilan</b> diketik manual di grid
-        (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
+        Kolom <b>Poin / Hari Insentif / PPh21 / Cicilan / Angsuran / Simpanan Pokok</b> diketik
+        manual di grid (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
         &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b> &amp;
         <b>Cicilan</b> diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,
         lalu dapat disesuaikan untuk periode ini. Sisanya dihitung otomatis:
         <b>THP</b> = Gapok + Tunj. Jabatan + Tunj. Kompetensi + Tunj. Makan,
         <b>Lembur</b> = Poin / {{ PEMBAGI_LEMBUR }} &times; THP,
         <b>Insentif</b> = Hari Insentif &times; {{ TARIF_INSENTIF.toLocaleString("id-ID") }},
-        <b>Potong Gaji</b> = Hari Potong / {{ PEMBAGI_POTONG }} &times; THP,
+        <b>Potong Gaji</b> = Hari Potong / {{ PEMBAGI_POTONG }} &times; THP.
+        <b>Angsuran</b> ikut mengurangi <b>Total Potongan</b>, sedangkan <b>Simpanan Pokok</b>
+        hanya informasi koperasi (tampak di slip) tidak ikut Total Potongan — mengikuti
+        aturan Proses Gaji N3.
         <b>Gaji</b> = THP + Lembur + Insentif &minus; Total Potongan (dibulatkan).
         Nilai Gapok/Tunjangan dan potongan lain tetap mengikuti
         <b>Master &rsaquo; Setting Gaji PKRT</b>.
@@ -1350,9 +1402,14 @@ onMounted(() => {
   max-height: 58vh;
 }
 .data-table {
-  width: 100%;
+  width: max-content;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 11px;
+}
+.data-table th,
+.data-table td {
+  box-sizing: border-box;
 }
 .data-table th {
   position: sticky;
@@ -1436,6 +1493,30 @@ th.sorted .th-sort {
   background: #eef2f9;
   font-weight: 700;
 }
+/* Freeze kolom No / NIK / Nama saat grid digeser ke kanan */
+.data-table th.frozen {
+  z-index: 3;
+  box-shadow: inset -1px 0 0 #1b2d4a;
+}
+.data-table td.frozen {
+  position: sticky;
+  z-index: 1;
+  background-color: #fff;
+  box-shadow: inset -1px 0 0 #d7dde5;
+}
+.data-table tbody tr:nth-child(even) td.frozen {
+  background-color: #f4f6fa;
+}
+.data-table tbody tr:hover td.frozen {
+  background-color: #e9eef7;
+}
+.data-table tfoot td.frozen {
+  z-index: 4;
+  background-color: #eef2f9;
+}
+.data-table .frozen-1 { left: 0; }
+.data-table .frozen-2 { left: 34px; }
+.data-table .frozen-3 { left: 134px; }
 .c { text-align: center; }
 .r { text-align: right; }
 .strong { font-weight: 800; }
