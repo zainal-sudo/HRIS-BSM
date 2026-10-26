@@ -29,7 +29,8 @@ import {
  *   Potong Gaji    = Hari Potong / 25 * THP
  *   Total Potongan = PPh21 + BPJS Kes + BPJS TK + Simpanan Kop + Cicilan
  *                    + Angsuran + Potong Gaji   (Angsuran ikut potongan)
- *   Gaji           = THP + Lembur + Insentif - Total Potongan  (dibulatkan)
+ *   Gaji           = THP + Lembur + Insentif - Total Potongan + Koreksi
+ *                    Bln Lalu (dibulatkan; koreksi boleh minus)
  *
  * Kolom "Hari Potong" ditarik dari Rekap Absensi (field "Potong_Gaji"),
  * sedangkan Poin, Hari Insentif, PPh21, Cicilan, Angsuran & Simpanan Pokok
@@ -51,6 +52,7 @@ interface RowGajiPkrt {
   tkompetensi: number;
   tmakan: number;
   pph21: number;
+  koreksi: number;
   bpjskesehatan: number;
   bpjstk: number;
   simpankoperasi: number;
@@ -206,7 +208,7 @@ function recalc(r: RowGajiPkrt) {
     num(r.cicilan) +
     num(r.angsuran) +
     nominalpotgaji;
-  const gaji = thp + lembur + insentif - potongan;
+  const gaji = thp + lembur + insentif - potongan + num(r.koreksi);
   r.thp = thp;
   r.lembur = lembur;
   r.insentif = insentif;
@@ -222,6 +224,7 @@ type KolomManual =
   | "hariinsentif"
   | "haripotong"
   | "pph21"
+  | "koreksi"
   | "cicilan"
   | "angsuran"
   | "simpananpokok";
@@ -239,6 +242,7 @@ const total = computed(() => {
   const t = {
     gapok: 0, tunjangan: 0, thp: 0, lembur: 0, insentif: 0,
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
+    koreksi: 0,
     bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
     simpananpokok: 0, angsuran: 0,
     nominalpotgaji: 0,
@@ -250,6 +254,7 @@ const total = computed(() => {
     t.lembur += num(r.lembur);
     t.insentif += num(r.insentif);
     t.pph21 += num(r.pph21);
+    t.koreksi += num(r.koreksi);
     t.bpjs += num(r.bpjskesehatan) + num(r.bpjstk);
     t.lainnya += num(r.simpankoperasi) + num(r.cicilan) + num(r.angsuran);
     t.bpjskesehatan += num(r.bpjskesehatan);
@@ -309,6 +314,7 @@ function barisDari(d: any): RowGajiPkrt {
     tkompetensi: num(d.tkompetensi),
     tmakan: num(d.tmakan),
     pph21: num(d.pph21),
+    koreksi: num(d.koreksi),
     bpjskesehatan: num(d.bpjskesehatan),
     bpjstk: num(d.bpjstk),
     simpankoperasi: num(d.simpankoperasi),
@@ -470,6 +476,7 @@ async function simpan() {
         hariinsentif: num(r.hariinsentif),
         haripotong: num(r.haripotong),
         pph21: num(r.pph21),
+        koreksi: num(r.koreksi),
         bpjskesehatan: num(r.bpjskesehatan),
         bpjstk: num(r.bpjstk),
         simpankoperasi: num(r.simpankoperasi),
@@ -493,7 +500,7 @@ function exportCsv() {
   const header = [
     "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
-    "Hari Insentif", "Insentif", "PPh21", "BPJS Kesehatan", "BPJS TK",
+    "Hari Insentif", "Insentif", "PPh21", "Koreksi Bln Lalu", "BPJS Kesehatan", "BPJS TK",
     "Simpanan Koperasi", "Cicilan", "Angsuran", "Simpanan Pokok", "Hari Potong",
     "Potong Gaji", "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
   ];
@@ -501,7 +508,7 @@ function exportCsv() {
     [
       r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
       num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
-      num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.bpjskesehatan),
+      num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.koreksi), num(r.bpjskesehatan),
       num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.angsuran),
       num(r.simpananpokok), num(r.haripotong),
       num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
@@ -524,7 +531,7 @@ async function exportExcel() {
   const columns = [
     "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
-    "Hari Insentif", "Insentif", "PPh21", "BPJS Kesehatan", "BPJS TK",
+    "Hari Insentif", "Insentif", "PPh21", "Koreksi Bln Lalu", "BPJS Kesehatan", "BPJS TK",
     "Simpanan Koperasi", "Cicilan", "Angsuran", "Simpanan Pokok", "Hari Potong",
     "Potong Gaji", "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
   ];
@@ -534,7 +541,7 @@ async function exportExcel() {
       sortedRows.value.map((r) => [
         r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
         num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
-        num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.bpjskesehatan),
+        num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.koreksi), num(r.bpjskesehatan),
         num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.angsuran),
         num(r.simpananpokok), num(r.haripotong),
         num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
@@ -770,6 +777,7 @@ const editableColumns = [
   { key: "hariinsentif", label: "Hari Insentif", width: "95px", align: "c" },
   { key: "haripotong", label: "Hari Potong", width: "90px", align: "c" },
   { key: "pph21", label: "PPh21", width: "95px", align: "c" },
+  { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
   { key: "cicilan", label: "Cicilan", width: "95px", align: "c" },
   { key: "angsuran", label: "Angsuran", width: "95px", align: "c" },
   { key: "simpananpokok", label: "Simpanan Pokok", width: "115px", align: "c" },
@@ -973,10 +981,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="21" class="row-empty">Memuat data...</td>
+              <td :colspan="22" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="21" class="row-empty">
+              <td :colspan="22" class="row-empty">
                 Belum ada data. Klik <b>Muat Karyawan</b> untuk memuat master, atau
                 <b>Muat Tersimpan</b> untuk membuka periode {{ periodeLabel }}.
               </td>
@@ -1022,6 +1030,16 @@ onMounted(() => {
                   class="cell-input"
                   title="PPh21 periode ini — boleh diisi manual"
                   @update:model-value="(v) => isiManual(r, 'pph21', v)"
+                />
+              </td>
+              <td class="c">
+                <input
+                  v-model.number="r.koreksi"
+                  class="cell-input"
+                  type="number"
+                  step="1000"
+                  title="Koreksi gaji bulan lalu — penambah gaji, boleh diisi minus"
+                  @input="isiManual(r, 'koreksi', r.koreksi)"
                 />
               </td>
               <td class="c">
@@ -1071,6 +1089,7 @@ onMounted(() => {
               <td></td>
               <td></td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
+              <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.cicilan) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
@@ -1093,7 +1112,8 @@ onMounted(() => {
         <b>Angsuran</b> ikut mengurangi <b>Total Potongan</b>, sedangkan <b>Simpanan Pokok</b>
         hanya informasi koperasi (tampak di slip) tidak ikut Total Potongan — mengikuti
         aturan Proses Gaji N3.
-        <b>Gaji</b> = THP + Lembur + Insentif &minus; Total Potongan (dibulatkan).
+        <b>Gaji</b> = THP + Lembur + Insentif &minus; Total Potongan + <b>Koreksi Bln Lalu</b>
+        (dibulatkan; koreksi penambah gaji, boleh diisi minus).
         Nilai Gapok/Tunjangan dan potongan lain tetap mengikuti
         <b>Master &rsaquo; Setting Gaji PKRT</b>.
       </div>

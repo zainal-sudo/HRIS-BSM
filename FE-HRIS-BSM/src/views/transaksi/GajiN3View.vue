@@ -33,7 +33,7 @@ import {
  *   potongan = bpjs+bpjstk+koperasi+angsuran+(terlambat*5000)
  *     +(potonghari*(gapok+tunjab+tmakan+ttransport+tkompetensi)/25)
  *     +(tidakmasuk*(tmakan+ttransport)/25)+pph21
- *   total = dasar - potongan
+ *   total = dasar - potongan + koreksi
  */
 
 interface RowGajiN3 {
@@ -57,6 +57,7 @@ interface RowGajiN3 {
   potonghari: number;
   angsuran: number;
   pph21: number;
+  koreksi: number;
   simpananpokok: number;
   sisaangsuran: number;
   potTerlambat: number;
@@ -159,7 +160,7 @@ function recalc(r: RowGajiN3) {
   r.potHarikerja = potHarikerja;
   r.potTidakmasuk = potTidakmasuk;
   r.potongan = potongan;
-  r.total = dasar - potongan;
+  r.total = dasar - potongan + num(r.koreksi);
 }
 
 const namaBulan = computed(() => BULAN[filters.periode - 1] || "");
@@ -178,6 +179,7 @@ const total = computed(() => {
     potongan: 0,
     pph21: 0,
     angsuran: 0,
+    koreksi: 0,
     simpananpokok: 0,
     sisaangsuran: 0,
     bpjs: 0,
@@ -200,6 +202,7 @@ const total = computed(() => {
     t.potongan += num(r.potongan);
     t.pph21 += num(r.pph21);
     t.angsuran += num(r.angsuran);
+    t.koreksi += num(r.koreksi);
     t.simpananpokok += num(r.simpananpokok);
     t.sisaangsuran += num(r.sisaangsuran);
     t.bpjs += num(r.bpjs);
@@ -264,6 +267,7 @@ function barisDariMaster(d: any): RowGajiN3 {
     potonghari: 0,
     angsuran: 0,
     pph21: num(d.pph21),
+    koreksi: 0,
     simpananpokok: 0,
     sisaangsuran: 0,
     potTerlambat: 0,
@@ -375,6 +379,7 @@ async function muatTersimpan() {
         potonghari: num(d.potonghari),
         angsuran: num(d.angsuran),
         pph21: num(d.pph21),
+        koreksi: num(d.koreksi),
         simpananpokok: num(d.simpananpokok),
         sisaangsuran: num(d.sisaangsuran),
         potTerlambat: num(d.potTerlambat),
@@ -456,6 +461,7 @@ async function simpan() {
         potonghari: num(r.potonghari),
         angsuran: num(r.angsuran),
         pph21: num(r.pph21),
+        koreksi: num(r.koreksi),
         simpananpokok: num(r.simpananpokok),
         sisaangsuran: num(r.sisaangsuran),
       })),
@@ -476,7 +482,7 @@ function exportCsv() {
     "NIK", "Nama", "Jabatan", "Departemen", "Unit", "Gaji Pokok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "Tunj. Transport", "Poin", "Lembur",
     "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Hari",
-    "Angsuran", "PPh21", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
+    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
     "Total Gaji", "Rekening",
   ];
   const lines = sortedRows.value.map((r) =>
@@ -484,7 +490,7 @@ function exportCsv() {
       r.nik, r.nama, r.jabatan, r.departemen, r.unit, num(r.gapok), num(r.tjabatan),
       num(r.tkompetensi), num(r.tmakan), num(r.transport), num(r.poin), num(r.lembur),
       num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat),
-      num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.simpananpokok),
+      num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
       num(r.sisaangsuran), num(r.potongan), num(r.total), r.rekening,
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -506,7 +512,7 @@ async function exportExcel() {
     "NIK", "Nama", "Jabatan", "Departemen", "Unit", "Gaji Pokok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "Tunj. Transport", "Poin", "Lembur",
     "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Hari",
-    "Angsuran", "PPh21", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
+    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
     "Total Gaji", "Rekening",
   ];
   try {
@@ -516,7 +522,7 @@ async function exportExcel() {
         r.nik, r.nama, r.jabatan, r.departemen, r.unit, num(r.gapok), num(r.tjabatan),
         num(r.tkompetensi), num(r.tmakan), num(r.transport), num(r.poin), num(r.lembur),
         num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat),
-        num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.simpananpokok),
+        num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
         num(r.sisaangsuran), num(r.potongan), num(r.total), r.rekening,
       ]),
       `gaji-n3_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
@@ -780,6 +786,7 @@ const editableColumns = [
   { key: "potonghari", label: "Pot. Hari", width: "85px" },
   { key: "angsuran", label: "Angsuran", width: "90px" },
   { key: "pph21", label: "PPh21", width: "90px" },
+  { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px" },
   { key: "simpananpokok", label: "Simpanan Pokok", width: "110px" },
   { key: "sisaangsuran", label: "Sisa Angsuran", width: "110px" },
 ] as const;
@@ -955,10 +962,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="27" class="row-empty">Memuat data...</td>
+              <td :colspan="28" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="27" class="row-empty">
+              <td :colspan="28" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -987,6 +994,7 @@ onMounted(() => {
               <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
+              <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
               <td class="c"><CurrencyInput v-model="r.simpananpokok" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.sisaangsuran" class="cell-input" /></td>
               <td class="c">
@@ -1017,6 +1025,7 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.potonghari) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
+              <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
               <td class="r strong">{{ fmt(total.sisaangsuran) }}</td>
               <td></td>
@@ -1027,10 +1036,10 @@ onMounted(() => {
       <div class="table-note">
         <MsIcon name="info" :size="13" />
         Klik judul kolom untuk mengurutkan. Kolom <b>NIK s/d Rekening</b> dan
-        <b>Lembur / Total Potongan / Total</b> terkunci (otomatis). Kolom tunjangan,
+        <b>Lembur / Total Potongan / Total</b> terkunci (otomatis).         Kolom tunjangan,
         <b>Poin</b> (Lembur = Poin&times;(Gapok+T.Jabatan+T.Makan+T.Transport)/173),
         <b>Tidak Masuk</b>, Terlambat, Pot. Hari, Angsuran, PPh21, Simpanan Pokok dan
-        Sisa Angsuran bisa diedit. <b>Tarik Absensi</b> hanya mengisi
+        Sisa Angsuran bisa diedit. <b>Koreksi Bln Lalu</b> adalah penambah gaji (boleh diisi minus). <b>Tarik Absensi</b> hanya mengisi
         <b>Terlambat</b> dan <b>Pot. Hari</b> (Tidak Masuk &amp; Poin manual, seperti
         Delphi N3). Cutoff absensi: <b>21 bulan sebelumnya s/d 20 bulan terpilih</b>.
         Hanya karyawan aktif unit 6 sistem <b>Harian / Bulanan</b> (gapok &gt; 0).

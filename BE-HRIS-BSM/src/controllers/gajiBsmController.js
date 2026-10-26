@@ -55,6 +55,7 @@ export function hitungGajiBsm(r) {
     const potonghari = num(r.potonghari)
     const angsuran = num(r.angsuran)
     const pph21 = num(r.pph21)
+    const koreksi = num(r.koreksi)
 
     const dasar = gapok + (tjabatan - potjabatan) + tkompetensi + tabsensi
     const potTerlambat = terlambat * 5000
@@ -62,7 +63,7 @@ export function hitungGajiBsm(r) {
     const potTidakmasuk = tidakmasuk * tabsensi / 25
     const potongan = bpjs + bpjstk + koperasi + angsuran
         + potTerlambat + potHarikerja + potTidakmasuk + pph21
-    const total = dasar - potongan
+    const total = dasar - potongan + koreksi
 
     return { dasar, potTerlambat, potHarikerja, potTidakmasuk, potongan, total }
 }
@@ -147,6 +148,7 @@ export const getGajiBsm = async (req, res, next) => {
         COALESCE(g.gb_potonganhari, 0) AS potonghari,
         COALESCE(g.gb_angsuran, 0) AS angsuran,
         COALESCE(g.gb_pph21, 0) AS pph21,
+        COALESCE(g.gb_koreksi, 0) AS koreksi,
         COALESCE(k.kar_rekeningbank, '') AS rekening,
         COALESCE(k.kar_email, '') AS email,
         COALESCE(k.kar_tunai, 0) AS tunai,
@@ -320,18 +322,19 @@ export const simpanGajiBsm = async (req, res, next) => {
             num(r.angsuran),
             num(r.pph21),
             num(r.potjabatan),
+            num(r.koreksi),
         ])
 
         const CHUNK = 200
         for (let i = 0; i < values.length; i += CHUNK) {
             const slice = values.slice(i, i + CHUNK)
-            const placeholders = slice.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')
+            const placeholders = slice.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')
             await conn.query(
                 `INSERT INTO tgajibulanan
           (gb_periode, gb_tahun, gb_nik, gb_nama, gb_unit, gb_jabatan,
            gb_gapok, gb_tunjanganjabatan, gb_tunjangankompetensi, gb_tunjanganabsensi,
            gb_bpjstk, gb_bpjs, gb_koperasi, gb_haritidakmasuk, gb_hariterlambat,
-           gb_potonganhari, gb_angsuran, gb_pph21, gb_potonganjabatan)
+           gb_potonganhari, gb_angsuran, gb_pph21, gb_potonganjabatan, gb_koreksi)
         VALUES ${placeholders}`,
                 slice.flat()
             )

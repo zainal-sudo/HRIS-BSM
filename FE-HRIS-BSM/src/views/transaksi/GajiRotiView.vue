@@ -39,6 +39,7 @@ interface RowGaji {
   lemburperjam: number;
   lembur: number;
   punishment: number;
+  koreksi: number;
   rekening: string;
   email: string;
   total: number;
@@ -161,8 +162,8 @@ const isLeader = (jabatan: string): boolean => String(jabatan || "").toUpperCase
 function recalc(r: RowGaji) {
   r.lembur = num(r.jamlembur) * num(r.lemburperjam);
   r.total = isLeader(r.jabatan)
-    ? num(r.gapok)
-    : r.lembur + num(r.gajiperhari) * num(r.masuk) - num(r.punishment);
+    ? num(r.gapok) + num(r.koreksi)
+    : r.lembur + num(r.gajiperhari) * num(r.masuk) - num(r.punishment) + num(r.koreksi);
 }
 
 const namaBulan = computed(() => BULAN[filters.periode - 1] || "");
@@ -176,6 +177,7 @@ const total = computed(() => {
     jamlembur: 0,
     lembur: 0,
     punishment: 0,
+    koreksi: 0,
     total: 0,
   };
   for (const r of sortedRows.value) {
@@ -184,6 +186,7 @@ const total = computed(() => {
     t.jamlembur += num(r.jamlembur);
     t.lembur += num(r.lembur);
     t.punishment += num(r.punishment);
+    t.koreksi += num(r.koreksi);
     t.total += num(r.total);
   }
   return t;
@@ -239,6 +242,7 @@ async function muatKaryawan() {
         lemburperjam: num(d.lemburperjam),
         lembur: 0,
         punishment: 0,
+        koreksi: 0,
         rekening: (d.rekening || "").trim(),
         email: (d.email || "").trim(),
         total: 0,
@@ -325,6 +329,7 @@ async function muatTersimpan() {
         lemburperjam: num(d.lemburperjam),
         lembur: num(d.lembur),
         punishment: num(d.punishment),
+        koreksi: num(d.koreksi),
         rekening: (d.rekening || "").trim(),
         email: (d.email || "").trim(),
         total: num(d.total),
@@ -392,6 +397,7 @@ async function simpan() {
         gapok: num(r.gapok),
         lemburperjam: num(r.lemburperjam),
         punishment: num(r.punishment),
+        koreksi: num(r.koreksi),
       })),
     };
     const { data } = await api.post("/gaji-roti/simpan", payload);
@@ -408,13 +414,13 @@ function exportCsv() {
   if (rows.value.length === 0) return;
   const header = [
     "NIK", "Nama", "Jabatan", "Unit", "Masuk", "Potong Gaji", "Jam Lembur",
-    "Gaji per Hari", "Gaji Pokok", "Lembur per Jam", "Lembur", "Punishment", "Rekening", "Total",
+    "Gaji per Hari", "Gaji Pokok", "Lembur per Jam", "Lembur", "Punishment", "Koreksi Bln Lalu", "Rekening", "Total",
   ];
   const lines = sortedRows.value.map((r) =>
     [
       r.nik, r.nama, r.jabatan, r.unit, num(r.masuk), num(r.potonggaji), num(r.jamlembur),
       num(r.gajiperhari), num(r.gapok), num(r.lemburperjam), num(r.lembur), num(r.punishment),
-      r.rekening, num(r.total),
+      num(r.koreksi), r.rekening, num(r.total),
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
@@ -433,7 +439,7 @@ async function exportExcel() {
   if (sortedRows.value.length === 0) return;
   const columns = [
     "NIK", "Nama", "Jabatan", "Unit", "Masuk", "Potong Gaji", "Jam Lembur",
-    "Gaji per Hari", "Gaji Pokok", "Lembur per Jam", "Lembur", "Punishment", "Rekening", "Total",
+    "Gaji per Hari", "Gaji Pokok", "Lembur per Jam", "Lembur", "Punishment", "Koreksi Bln Lalu", "Rekening", "Total",
   ];
   try {
     await exportRowsToXlsx(
@@ -441,7 +447,7 @@ async function exportExcel() {
       sortedRows.value.map((r) => [
         r.nik, r.nama, r.jabatan, r.unit, num(r.masuk), num(r.potonggaji), num(r.jamlembur),
         num(r.gajiperhari), num(r.gapok), num(r.lemburperjam), num(r.lembur), num(r.punishment),
-        r.rekening, num(r.total),
+        num(r.koreksi), r.rekening, num(r.total),
       ]),
       `gaji-roti_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
     );
@@ -685,6 +691,7 @@ const sortableColumns = [
   { key: "lemburperjam", label: "Lembur/Jam", width: "100px", align: "r" },
   { key: "lembur", label: "Lembur", width: "110px", align: "r" },
   { key: "punishment", label: "Punishment", width: "90px", align: "c" },
+  { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
   { key: "rekening", label: "Rekening", width: "120px", align: "" },
   { key: "total", label: "Total", width: "120px", align: "r" },
 ] as const;
@@ -881,6 +888,7 @@ onMounted(() => {
               <td class="r">{{ fmt(r.lemburperjam) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
               <td class="c"><input v-model.number="r.punishment" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
+              <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" @input="recalc(r)" /></td>
               <td>{{ r.rekening || "-" }}</td>
               <td class="r strong">{{ fmt(r.total) }}</td>
               <td class="c">
@@ -898,6 +906,7 @@ onMounted(() => {
               <td class="c strong">{{ fmt(total.jamlembur, 1) }}</td>
               <td colspan="4"></td>
               <td class="c strong">{{ fmt(total.punishment) }}</td>
+              <td class="c strong">{{ fmt(total.koreksi) }}</td>
               <td></td>
               <td class="r strong">{{ fmt(total.total) }}</td>
               <td></td>
@@ -910,10 +919,11 @@ onMounted(() => {
         Klik judul kolom untuk mengurutkan (klik sekali naik, klik dua kali turun, klik ketiga
         membatalkan) dan ikon filter di tiap judul kolom untuk menyaring nilai tertentu.
         Kolom Masuk, Potong Gaji, Jam Lembur dan Rekening terkunci (otomatis dari absensi);
-        hanya kolom <b>Punishment</b> yang bisa diedit. Nilai
+        hanya kolom <b>Punishment</b> dan <b>Koreksi Bln Lalu</b> yang bisa diedit (koreksi boleh
+        minus). Nilai
         <b>Lembur</b> = Jam Lembur x Lembur/Jam, dan <b>Total</b> = Gaji Pokok (untuk jabatan
-        LEADER) atau Gaji/Hari x Masuk + Lembur - Punishment. Menyimpan akan menghapus data
-        periode ini lalu menyimpan ulang.
+        LEADER) atau Gaji/Hari x Masuk + Lembur - Punishment + Koreksi Bln Lalu. Menyimpan akan
+        menghapus data periode ini lalu menyimpan ulang.
       </div>
     </div>
 

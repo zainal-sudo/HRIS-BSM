@@ -30,6 +30,7 @@ export interface SlipGajiBsmItem {
   potonghari: number;
   angsuran: number;
   pph21: number;
+  koreksi?: number;
   potTerlambat?: number;
   potHarikerja?: number;
   potTidakmasuk?: number;
@@ -96,12 +97,14 @@ function rincian(r: SlipGajiBsmItem) {
     Number(r.potHarikerja) || ((Number(r.potonghari) || 0) * (gapok + (tjabatan - potjabatan) + tabsensi)) / 25;
   const potTidakmasuk =
     Number(r.potTidakmasuk) || ((Number(r.tidakmasuk) || 0) * tabsensi) / 25;
+  const koreksi = Number(r.koreksi) || 0;
   return {
     gapok,
     potTerlambat,
     potHarikerja,
     potTidakmasuk,
     dasar: gapok + (tjabatan - potjabatan) + tkompetensi + tabsensi,
+    koreksi,
     total: Number(r.total) || 0,
   };
 }
@@ -146,6 +149,7 @@ const rowHtml = (r: SlipGajiBsmItem): string => {
         ${baris("POTONGAN HARI KERJA", fmt(x.potHarikerja))}
         ${baris("POTONGAN TIDAK MASUK", fmt(x.potTidakmasuk))}
         ${baris("PPh 21", fmt(r.pph21))}
+        ${baris("KOREKSI GAJI BLN LALU", fmt(x.koreksi))}
       </div>
 
       <div class="box total">
@@ -292,6 +296,7 @@ async function renderPdfBlob(r: SlipGajiBsmItem): Promise<{ blob: Blob; filename
     baris("POTONGAN HARI KERJA", fmt(x.potHarikerja));
     baris("POTONGAN TIDAK MASUK", fmt(x.potTidakmasuk));
     baris("PPh 21", fmt(r.pph21));
+    baris("KOREKSI GAJI BLN LALU", fmt(x.koreksi));
   });
 
   kotak(() => {

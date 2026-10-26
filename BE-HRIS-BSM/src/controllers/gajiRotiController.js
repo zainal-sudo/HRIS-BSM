@@ -47,9 +47,9 @@ function timeToHours(value) {
 }
 
 /** Hitung total bayar satu baris (aturan sama dengan InsertNilai2 Delphi) */
-function hitungTotal({ jabatan, gapok, lembur, gajiperhari, masuk, punishment }) {
-    if (CEK_LEADER(jabatan)) return num(gapok)
-    return num(lembur) + num(gajiperhari) * num(masuk) - num(punishment)
+function hitungTotal({ jabatan, gapok, lembur, gajiperhari, masuk, punishment, koreksi }) {
+    if (CEK_LEADER(jabatan)) return num(gapok) + num(koreksi)
+    return num(lembur) + num(gajiperhari) * num(masuk) - num(punishment) + num(koreksi)
 }
 
 /**
@@ -170,6 +170,7 @@ export const getGajiRoti = async (req, res, next) => {
         COALESCE(g.gb_lemburperjam, 0) AS lemburperjam,
         COALESCE(g.gb_lembur, 0) AS lembur,
         COALESCE(g.gb_punishment, 0) AS punishment,
+        COALESCE(g.gb_koreksi, 0) AS koreksi,
         COALESCE(k.kar_no_rekening, '') AS rekening,
         COALESCE(k.kar_email, '') AS email
       FROM tgajibulananroti g
@@ -245,6 +246,7 @@ export const simpanGajiRoti = async (req, res, next) => {
             const masuk = num(r.masuk)
             const potonggaji = num(r.potonggaji)
             const punishment = num(r.punishment)
+            const koreksi = num(r.koreksi)
             const lembur = jamlembur * lemburperjam
             return [
                 periode,
@@ -261,18 +263,19 @@ export const simpanGajiRoti = async (req, res, next) => {
                 lemburperjam,
                 lembur,
                 punishment,
+                koreksi,
             ]
         })
 
         const CHUNK = 200
         for (let i = 0; i < values.length; i += CHUNK) {
             const slice = values.slice(i, i + CHUNK)
-            const placeholders = slice.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')
+            const placeholders = slice.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')
             await conn.query(
                 `INSERT INTO tgajibulananroti
           (gb_periode, gb_tahun, gb_nik, gb_nama, gb_jabatan,
            gb_hari, gb_masuk, gb_potonggaji, gb_jamlembur, gb_gajiperhari,
-           gb_gapok, gb_lemburperjam, gb_lembur, gb_punishment)
+           gb_gapok, gb_lemburperjam, gb_lembur, gb_punishment, gb_koreksi)
         VALUES ${placeholders}`,
                 slice.flat()
             )

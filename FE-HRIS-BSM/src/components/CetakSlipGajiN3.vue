@@ -35,6 +35,7 @@ export interface SlipGajiN3Item {
   potonghari: number;
   angsuran: number;
   pph21: number;
+  koreksi?: number;
   simpananpokok?: number;
   sisaangsuran?: number;
   potTerlambat?: number;
@@ -91,6 +92,7 @@ function rincian(r: SlipGajiN3Item) {
     ((Number(r.potonghari) || 0) * (gapok + tjabatan + tmakan + transport + tkompetensi)) / 25;
   const potTidakmasuk =
     Number(r.potTidakmasuk) || ((Number(r.tidakmasuk) || 0) * (tmakan + transport)) / 25;
+  const koreksi = Number(r.koreksi) || 0;
   return {
     gapok,
     tjabatan,
@@ -103,6 +105,7 @@ function rincian(r: SlipGajiN3Item) {
     potHarikerja,
     potTidakmasuk,
     dasar: gapok + tjabatan + tkompetensi + tmakan + transport + lembur,
+    koreksi,
     potongan: Number(r.potongan) || 0,
     total: Number(r.total) || 0,
   };
@@ -147,6 +150,7 @@ const rowHtml = (r: SlipGajiN3Item): string => {
           ${hRow("TUNJ. KOMPETENSI", "", "", fmt(x.tkompetensi))}
           ${hRow("LEMBUR", fmt(x.poin, 2), x.poin ? "Poin" : "", fmt(Math.round(x.lembur)))}
           ${hRow("TUNJ. MAKAN", "", "", fmt(x.tmakan))}
+          ${hRow("KOREKSI GAJI BLN LALU", "", "", fmt(x.koreksi))}
         </tbody>
       </table>
       <table class="tbl tot"><tbody>
@@ -379,6 +383,7 @@ async function renderPdfBlob(r: SlipGajiN3Item): Promise<{ blob: Blob; filename:
   hRow("TUNJ. KOMPETENSI", "", "", fmt(x.tkompetensi));
   hRow("LEMBUR", fmt(x.poin, 2), x.poin ? "Poin" : "", fmt(Math.round(x.lembur)));
   hRow("TUNJ. MAKAN", "", "", fmt(x.tmakan));
+  hRow("KOREKSI GAJI BLN LALU", "", "", fmt(x.koreksi));
   frame(y0);
   y += 2;
   y0 = y;

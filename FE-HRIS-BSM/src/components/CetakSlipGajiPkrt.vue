@@ -36,6 +36,7 @@ export interface SlipGajiPkrtItem {
   cicilan: number;
   angsuran?: number;
   simpananpokok?: number;
+  koreksi?: number;
   haripotong?: number;
   nominalpotgaji?: number;
   potongan?: number;
@@ -107,17 +108,20 @@ function rincian(r: SlipGajiPkrtItem) {
   const insentif = Number(r.insentif) || n(r.hariinsentif) * 7000;
   const nominalpotgaji = Number(r.nominalpotgaji) || (n(r.haripotong) / 25) * thp;
 
+  const koreksi = n(r.koreksi);
   const potongan =
     n(r.pph21) + n(r.bpjskesehatan) + n(r.bpjstk) +
     n(r.simpankoperasi) + n(r.cicilan) + n(r.angsuran) + nominalpotgaji;
 
-  const gaji = Number(r.gaji) || (thp + lembur + insentif - potongan);
+  const rawGaji = thp + lembur + insentif - potongan + koreksi;
+  const gaji = Number(r.gaji) || rawGaji;
 
   return {
     thp,
     lembur,
     insentif,
     nominalpotgaji,
+    koreksi,
     potongan: Number(r.potongan) || potongan,
     gaji,
     gajibulat: Number(r.gajibulat) || Math.round(gaji),
@@ -164,6 +168,7 @@ const rowHtml = (r: SlipGajiPkrtItem): string => {
         ${baris("CICILAN", fmt(r.cicilan))}
         ${baris("ANGSURAN", fmt(r.angsuran))}
         ${baris("POTONG GAJI", fmt(x.nominalpotgaji))}
+        ${baris("KOREKSI GAJI BLN LALU", fmt(x.koreksi))}
       </div>
 
       <div class="box total">
@@ -314,6 +319,7 @@ async function renderPdfBlob(r: SlipGajiPkrtItem): Promise<{ blob: Blob; filenam
     baris("CICILAN", fmt(r.cicilan));
     baris("ANGSURAN", fmt(r.angsuran));
     baris("POTONG GAJI", fmt(x.nominalpotgaji));
+    baris("KOREKSI GAJI BLN LALU", fmt(x.koreksi));
   });
 
   kotak(() => {

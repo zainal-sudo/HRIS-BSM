@@ -20,6 +20,7 @@ export interface SlipGajiItem {
   lemburperjam: number;
   lembur: number;
   punishment: number;
+  koreksi?: number;
   rekening?: string;
   total: number;
 }
@@ -107,6 +108,7 @@ const rowHtml = (r: SlipGajiItem): string => {
         ${baris("LEMBUR / JAM", fmt(r.lemburperjam, 2))}
         ${baris("NOMINAL LEMBUR", fmt(nilaiLembur))}
         ${baris("PUNISHMENT", fmt(r.punishment))}
+        ${baris("KOREKSI GAJI BLN LALU", fmt(r.koreksi || 0))}
       </div>
 
       <div class="box total">
@@ -275,6 +277,7 @@ async function renderPdfBlob(r: SlipGajiItem): Promise<{ blob: Blob; filename: s
     baris("LEMBUR / JAM", fmt(r.lemburperjam, 2));
     baris("NOMINAL LEMBUR", fmt(nilaiLembur));
     baris("PUNISHMENT", fmt(r.punishment));
+    baris("KOREKSI GAJI BLN LALU", fmt(r.koreksi || 0));
   });
 
   kotak(() => {

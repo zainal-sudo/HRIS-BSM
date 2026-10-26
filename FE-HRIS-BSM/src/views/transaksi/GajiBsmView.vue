@@ -52,6 +52,7 @@ interface RowGajiBsm {
   potonghari: number;
   angsuran: number;
   pph21: number;
+  koreksi: number;
   potTerlambat: number;
   potHarikerja: number;
   potTidakmasuk: number;
@@ -185,7 +186,7 @@ function recalc(r: RowGajiBsm) {
   r.potHarikerja = potHarikerja;
   r.potTidakmasuk = potTidakmasuk;
   r.potongan = potongan;
-  r.total = dasar - potongan;
+  r.total = dasar - potongan + num(r.koreksi);
 }
 
 const namaBulan = computed(() => BULAN[filters.periode - 1] || "");
@@ -199,6 +200,7 @@ const total = computed(() => {
     potongan: 0,
     pph21: 0,
     angsuran: 0,
+    koreksi: 0,
     total: 0,
   };
   for (const r of sortedRows.value) {
@@ -207,6 +209,7 @@ const total = computed(() => {
     t.potongan += num(r.potongan);
     t.pph21 += num(r.pph21);
     t.angsuran += num(r.angsuran);
+    t.koreksi += num(r.koreksi);
     t.total += num(r.total);
   }
   return t;
@@ -261,6 +264,7 @@ function barisDariMaster(d: any): RowGajiBsm {
     potonghari: 0,
     angsuran: 0,
     pph21: num(d.pph21),
+    koreksi: num(d.koreksi),
     potTerlambat: 0,
     potHarikerja: 0,
     potTidakmasuk: 0,
@@ -366,6 +370,7 @@ async function muatTersimpan() {
         potonghari: num(d.potonghari),
         angsuran: num(d.angsuran),
         pph21: num(d.pph21),
+        koreksi: num(d.koreksi),
         potTerlambat: num(d.potTerlambat),
         potHarikerja: num(d.potHarikerja),
         potTidakmasuk: num(d.potTidakmasuk),
@@ -444,6 +449,7 @@ async function simpan() {
         potonghari: num(r.potonghari),
         angsuran: num(r.angsuran),
         pph21: num(r.pph21),
+        koreksi: num(r.koreksi),
       })),
     };
     const { data } = await api.post("/gaji-bsm/simpan", payload);
@@ -462,14 +468,14 @@ function exportCsv() {
     "NIK", "Nama", "Jabatan", "Unit", "Gaji Pokok", "Tunjangan Jabatan",
     "Tunjangan Kompetensi", "Tunjangan Absensi", "Potongan Jabatan", "BPJS",
     "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Potong Hari",
-    "Angsuran", "PPh21", "Total Potongan", "Total Gaji", "Rekening",
+    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Total Potongan", "Total Gaji", "Rekening",
   ];
   const lines = sortedRows.value.map((r) =>
     [
       r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan), num(r.tkompetensi),
       num(r.tabsensi), num(r.potjabatan), num(r.bpjs), num(r.bpjstk), num(r.koperasi),
       num(r.tidakmasuk), num(r.terlambat), num(r.potonghari), num(r.angsuran), num(r.pph21),
-      num(r.potongan), num(r.total), r.rekening,
+      num(r.koreksi), num(r.potongan), num(r.total), r.rekening,
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
@@ -490,7 +496,7 @@ async function exportExcel() {
     "NIK", "Nama", "Jabatan", "Unit", "Gaji Pokok", "Tunjangan Jabatan",
     "Tunjangan Kompetensi", "Tunjangan Absensi", "Potongan Jabatan", "BPJS",
     "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Potong Hari",
-    "Angsuran", "PPh21", "Total Potongan", "Total Gaji", "Rekening",
+    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Total Potongan", "Total Gaji", "Rekening",
   ];
   try {
     await exportRowsToXlsx(
@@ -499,7 +505,7 @@ async function exportExcel() {
         r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan), num(r.tkompetensi),
         num(r.tabsensi), num(r.potjabatan), num(r.bpjs), num(r.bpjstk), num(r.koperasi),
         num(r.tidakmasuk), num(r.terlambat), num(r.potonghari), num(r.angsuran), num(r.pph21),
-        num(r.potongan), num(r.total), r.rekening,
+        num(r.koreksi), num(r.potongan), num(r.total), r.rekening,
       ]),
       `gaji-bsm_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
     );
@@ -751,6 +757,7 @@ const sortableColumns = [
   { key: "potonghari", label: "Pot. Hari", width: "85px", align: "c" },
   { key: "angsuran", label: "Angsuran", width: "90px", align: "c" },
   { key: "pph21", label: "PPh21", width: "90px", align: "c" },
+  { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
   { key: "potongan", label: "Total Potongan", width: "115px", align: "r" },
   { key: "rekening", label: "Rekening", width: "120px", align: "" },
   { key: "total", label: "Total", width: "120px", align: "r" },
@@ -926,10 +933,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="22" class="row-empty">Memuat data...</td>
+              <td :colspan="23" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="22" class="row-empty">
+              <td :colspan="23" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -952,6 +959,7 @@ onMounted(() => {
               <td class="c"><input v-model.number="r.potonghari" class="cell-input" type="number" min="0" step="1" @input="recalc(r)" /></td>
               <td class="c"><input v-model.number="r.angsuran" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
               <td class="c"><input v-model.number="r.pph21" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
+              <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
               <td class="r">{{ fmt(r.potongan) }}</td>
               <td>{{ r.rekening || "-" }}</td>
               <td class="r strong">{{ fmt(r.total) }}</td>
@@ -968,6 +976,7 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.gapok) }}</td>
               <td colspan="4" class="r strong">{{ fmt(total.tunjangan) }}</td>
               <td colspan="8"></td>
+              <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
               <td class="r strong">{{ fmt(total.total) }}</td>
@@ -982,7 +991,8 @@ onMounted(() => {
         judul kolom untuk menyaring nilai tertentu. Kolom <b>Gaji Pokok</b>, <b>Rekening</b> dan
         <b>Total Potongan</b> terkunci (otomatis dari master karyawan). Sisa kolom bisa diedit.
         <b>Total Gaji</b> = Gaji Pokok + (Tunjangan Jabatan - Potongan Jabatan) + Tunjangan
-        Kompetensi + Tunjangan Absensi - seluruh potongan. Tombol <b>Tarik Absensi</b> mengisi kolom
+        Kompetensi + Tunjangan Absensi - seluruh potongan + <b>Koreksi Bln Lalu</b>
+        (boleh diisi minus). Tombol <b>Tarik Absensi</b> mengisi kolom
         <b>Tidak Masuk</b> (cuti tahunan + sakit + cuti khusus), <b>Terlambat</b> dan
         <b>Pot. Hari</b> dari Laporan Rekap Absensi; <b>Angsuran</b> masih diisi manual.
         Cutoff absensi mengikuti periode gaji: <b>21 bulan sebelumnya s/d 20 bulan terpilih</b>

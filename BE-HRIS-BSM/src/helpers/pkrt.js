@@ -79,7 +79,7 @@ export function hitungGajiPkrt(r) {
         num(r.angsuran) +
         nominalpotgaji
 
-    const gaji = thp + lembur + insentif - potongan
+    const gaji = thp + lembur + insentif - potongan + num(r.koreksi)
 
     return {
         thp,
