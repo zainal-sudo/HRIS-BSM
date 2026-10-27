@@ -111,7 +111,7 @@ function rincian(r: SlipGajiPkrtItem) {
   const koreksi = n(r.koreksi);
   const potongan =
     n(r.pph21) + n(r.bpjskesehatan) + n(r.bpjstk) +
-    n(r.simpankoperasi) + n(r.cicilan) + n(r.angsuran) + nominalpotgaji;
+    n(r.simpankoperasi) + n(r.angsuran) + nominalpotgaji;
 
   const rawGaji = thp + lembur + insentif - potongan + koreksi;
   const gaji = Number(r.gaji) || rawGaji;
@@ -165,7 +165,6 @@ const rowHtml = (r: SlipGajiPkrtItem): string => {
         ${baris("BPJS KESEHATAN", fmt(r.bpjskesehatan))}
         ${baris("BPJS KETENAGAKERJAAN", fmt(r.bpjstk))}
         ${baris("SIMPANAN KOPERASI", fmt(r.simpankoperasi))}
-        ${baris("CICILAN", fmt(r.cicilan))}
         ${baris("ANGSURAN", fmt(r.angsuran))}
         ${baris("POTONG GAJI", fmt(x.nominalpotgaji))}
         ${baris("KOREKSI GAJI BLN LALU", fmt(x.koreksi))}

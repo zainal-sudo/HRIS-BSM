@@ -778,7 +778,6 @@ const editableColumns = [
   { key: "haripotong", label: "Hari Potong", width: "90px", align: "c" },
   { key: "pph21", label: "PPh21", width: "95px", align: "c" },
   { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
-  { key: "cicilan", label: "Cicilan", width: "95px", align: "c" },
   { key: "angsuran", label: "Angsuran", width: "95px", align: "c" },
   { key: "simpananpokok", label: "Simpanan Pokok", width: "115px", align: "c" },
 ] as const;
@@ -1044,14 +1043,6 @@ onMounted(() => {
               </td>
               <td class="c">
                 <CurrencyInput
-                  :model-value="r.cicilan"
-                  class="cell-input"
-                  title="Cicilan periode ini — boleh diisi manual"
-                  @update:model-value="(v) => isiManual(r, 'cicilan', v)"
-                />
-              </td>
-              <td class="c">
-                <CurrencyInput
                   :model-value="r.angsuran"
                   class="cell-input"
                   title="Angsuran periode ini — boleh diisi manual (ikut Total Potongan)"
@@ -1090,7 +1081,6 @@ onMounted(() => {
               <td></td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
               <td class="r strong">{{ fmt(total.koreksi) }}</td>
-              <td class="r strong">{{ fmt(total.cicilan) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
               <td></td>
@@ -1100,10 +1090,10 @@ onMounted(() => {
       </div>
       <div class="table-note">
         <MsIcon name="info" :size="13" />
-        Kolom <b>Poin / Hari Insentif / PPh21 / Cicilan / Angsuran / Simpanan Pokok</b> diketik
+        Kolom <b>Poin / Hari Insentif / PPh21 / Angsuran / Simpanan Pokok</b> diketik
         manual di grid (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
-        &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b> &amp;
-        <b>Cicilan</b> diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,
+        &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b>
+        diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,
         lalu dapat disesuaikan untuk periode ini. Sisanya dihitung otomatis:
         <b>THP</b> = Gapok + Tunj. Jabatan + Tunj. Kompetensi + Tunj. Makan,
         <b>Lembur</b> = Poin / {{ PEMBAGI_LEMBUR }} &times; THP,

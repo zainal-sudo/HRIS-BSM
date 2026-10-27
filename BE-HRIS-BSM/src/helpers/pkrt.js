@@ -75,7 +75,6 @@ export function hitungGajiPkrt(r) {
         num(r.bpjskesehatan) +
         num(r.bpjstk) +
         num(r.simpankoperasi) +
-        num(r.cicilan) +
         num(r.angsuran) +
         nominalpotgaji
 
