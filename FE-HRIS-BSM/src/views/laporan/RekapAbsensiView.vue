@@ -12,6 +12,7 @@ import {
   sortIconName,
 } from "@/utils/table";
 import ColumnFilterPopup from "@/components/ColumnFilterPopup.vue";
+import { exportRowsToXlsx } from "@/utils/excel";
 
 const toast = useToast();
 
@@ -21,6 +22,7 @@ const filters = reactive({
 });
 
 const loading = ref(false);
+const exporting = ref(false);
 const rows = ref<any[]>([]);
 const loaded = ref(false);
 
@@ -129,6 +131,31 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+async function exportExcel() {
+  if (exporting.value || displayRows.value.length === 0) return;
+  exporting.value = true;
+  try {
+    const keys = ["NIK", ...columns.value];
+    await exportRowsToXlsx(
+      keys.map((k, i) => ({ label: k, width: i === 0 ? 14 : undefined })),
+      displayRows.value.map((r) =>
+        keys.map((k) => {
+          if (k === "NIK") return pickCell(r, k);
+          const v = r[k];
+          const n = Number(v);
+          return v !== null && v !== undefined && v !== "" && isFinite(n) ? n : v;
+        })
+      ),
+      `rekap-absensi_${filters.start_date}_${filters.end_date}`
+    );
+    toast.success(`${displayRows.value.length} baris berhasil di-export ke Excel`);
+  } catch {
+    toast.error("Gagal export Excel");
+  } finally {
+    exporting.value = false;
+  }
+}
+
 onMounted(load);
 </script>
 
@@ -154,6 +181,9 @@ onMounted(load);
         </button>
         <button class="btn" :disabled="displayRows.length === 0" @click="exportCsv">
           <MsIcon name="download" :size="15" /> Export CSV
+        </button>
+        <button class="btn" :disabled="displayRows.length === 0 || exporting" @click="exportExcel">
+          <MsIcon name="file_excel" :size="15" /> {{ exporting ? "Exporting..." : "Export Excel" }}
         </button>
       </div>
     </div>

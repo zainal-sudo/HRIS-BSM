@@ -12,6 +12,7 @@ import {
   sortIconName,
 } from "@/utils/table";
 import ColumnFilterPopup from "@/components/ColumnFilterPopup.vue";
+import { exportRowsToXlsx } from "@/utils/excel";
 
 const toast = useToast();
 
@@ -21,6 +22,7 @@ const filters = reactive({
 });
 
 const loading = ref(false);
+const exporting = ref(false);
 const rows = ref<any[]>([]);
 const summary = ref<any>({ total_data: 0, total_masuk: 0, total_terlambat: 0, total_potong_gaji: 0 });
 const loaded = ref(false);
@@ -153,6 +155,37 @@ function exportCsv() {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+async function exportExcel() {
+  if (exporting.value || displayRows.value.length === 0) return;
+  exporting.value = true;
+  try {
+    const excelCols = [
+      { label: "Tanggal", width: 12 },
+      { label: "Hari", width: 10 },
+      { label: "NIK", width: 14 },
+      { label: "Nama", width: 25 },
+      { label: "Jabatan", width: 22 },
+      { label: "Unit", width: 18 },
+      { label: "Jam In", width: 8 },
+      { label: "Jam Out", width: 8 },
+      { label: "Keterangan", width: 14 },
+      { label: "Payroll", width: 14 },
+      { label: "No Ijin", width: 14 },
+      { label: "Ket Ijin", width: 20 },
+    ];
+    await exportRowsToXlsx(
+      excelCols,
+      displayRows.value.map((r) => columns.value.map((c) => r[c.key] ?? "")),
+      `laporan-absensi_${filters.start_date}_${filters.end_date}`
+    );
+    toast.success(`${displayRows.value.length} baris berhasil di-export ke Excel`);
+  } catch {
+    toast.error("Gagal export Excel");
+  } finally {
+    exporting.value = false;
+  }
+}
 </script>
 
 <template>
@@ -177,6 +210,9 @@ function exportCsv() {
         </button>
         <button class="btn" :disabled="displayRows.length === 0" @click="exportCsv">
           <MsIcon name="download" :size="15" /> Export CSV
+        </button>
+        <button class="btn" :disabled="displayRows.length === 0 || exporting" @click="exportExcel">
+          <MsIcon name="file_excel" :size="15" /> {{ exporting ? "Exporting..." : "Export Excel" }}
         </button>
       </div>
     </div>
