@@ -162,7 +162,7 @@ const isLeader = (jabatan: string): boolean => String(jabatan || "").toUpperCase
 function recalc(r: RowGaji) {
   r.lembur = num(r.jamlembur) * num(r.lemburperjam);
   r.total = isLeader(r.jabatan)
-    ? num(r.gapok) + num(r.koreksi)
+    ? num(r.gapok) + r.lembur + num(r.koreksi)
     : r.lembur + num(r.gajiperhari) * num(r.masuk) - num(r.punishment) + num(r.koreksi);
 }
 
@@ -921,7 +921,7 @@ onMounted(() => {
         Kolom Masuk, Potong Gaji, Jam Lembur dan Rekening terkunci (otomatis dari absensi);
         hanya kolom <b>Punishment</b> dan <b>Koreksi Bln Lalu</b> yang bisa diedit (koreksi boleh
         minus). Nilai
-        <b>Lembur</b> = Jam Lembur x Lembur/Jam, dan <b>Total</b> = Gaji Pokok (untuk jabatan
+        <b>Lembur</b> = Jam Lembur x Lembur/Jam, dan <b>Total</b> = Gaji Pokok + Lembur (untuk jabatan
         LEADER) atau Gaji/Hari x Masuk + Lembur - Punishment + Koreksi Bln Lalu. Menyimpan akan
         menghapus data periode ini lalu menyimpan ulang.
       </div>

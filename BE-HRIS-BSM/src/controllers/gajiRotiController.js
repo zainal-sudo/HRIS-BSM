@@ -24,7 +24,7 @@ import { smtpTransporter, kirimSlipPdf } from '../helpers/smtp.js'
 // Upah lembur per jam: gaji pokok / 208 jam x 1.5 (sama dengan Delphi)
 const SQL_LEMBUR_PER_JAM = '(k.kar_gaji_pokok / 208 * 1.5)'
 
-// Jaringan LEADER dibayar gaji pokok, bukan harian + lembur
+// Jaringan LEADER dibayar gaji pokok + lembur, bukan harian
 const CEK_LEADER = (jabatan) => String(jabatan || '').toUpperCase().includes('LEADER')
 
 /** Ubah apa pun jadi angka, nilai kosong/rusak -> 0 */
@@ -48,7 +48,7 @@ function timeToHours(value) {
 
 /** Hitung total bayar satu baris (aturan sama dengan InsertNilai2 Delphi) */
 function hitungTotal({ jabatan, gapok, lembur, gajiperhari, masuk, punishment, koreksi }) {
-    if (CEK_LEADER(jabatan)) return num(gapok) + num(koreksi)
+    if (CEK_LEADER(jabatan)) return num(gapok) + num(lembur) + num(koreksi)
     return num(lembur) + num(gajiperhari) * num(masuk) - num(punishment) + num(koreksi)
 }
 
