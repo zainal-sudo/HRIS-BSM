@@ -62,6 +62,7 @@ const KOLOM_SIMPAN = [
     ['simpankoperasi', 'gb_simpankoperasi'],
     ['cicilan', 'gb_cicilan'],
     ['simpananpokok', 'gb_simpananpokok'],
+    ['sisaangsuran', 'gb_sisaangsuran'],
     ['angsuran', 'gb_angsuran'],
     ['haripotong', 'gb_haripotong'],
     ['nominalpotgaji', 'gb_nominalpotgaji'],
@@ -215,6 +216,7 @@ export const getGajiPkrt = async (req, res, next) => {
         COALESCE(g.gb_simpankoperasi, 0) AS simpankoperasi,
         COALESCE(g.gb_cicilan, 0) AS cicilan,
         COALESCE(g.gb_simpananpokok, 0) AS simpananpokok,
+        COALESCE(g.gb_sisaangsuran, 0) AS sisaangsuran,
         COALESCE(g.gb_angsuran, 0) AS angsuran,
         COALESCE(g.gb_haripotong, 0) AS haripotong,
         COALESCE(g.gb_koreksi, 0) AS koreksi

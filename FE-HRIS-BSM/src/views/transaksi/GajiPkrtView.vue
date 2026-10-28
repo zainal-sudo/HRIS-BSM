@@ -58,6 +58,7 @@ interface RowGajiPkrt {
   simpankoperasi: number;
   cicilan: number;
   simpananpokok: number;
+  sisaangsuran: number;
   angsuran: number;
   poin: number;
   hariinsentif: number;
@@ -227,7 +228,8 @@ type KolomManual =
   | "koreksi"
   | "cicilan"
   | "angsuran"
-  | "simpananpokok";
+  | "simpananpokok"
+  | "sisaangsuran";
 
 /** Tulis nilai kolom manual lalu hitung ulang semua kolom turunan. */
 function isiManual(r: RowGajiPkrt, key: KolomManual, v: number) {
@@ -244,7 +246,9 @@ const total = computed(() => {
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
     koreksi: 0,
     bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
-    simpananpokok: 0, angsuran: 0,
+    simpananpokok: 0,
+    sisaangsuran: 0,
+    angsuran: 0,
     nominalpotgaji: 0,
   };
   for (const r of sortedRows.value) {
@@ -263,6 +267,7 @@ const total = computed(() => {
     t.cicilan += num(r.cicilan);
     t.angsuran += num(r.angsuran);
     t.simpananpokok += num(r.simpananpokok);
+    t.sisaangsuran += num(r.sisaangsuran);
     t.nominalpotgaji += num(r.nominalpotgaji);
     t.potongan += num(r.potongan);
     t.gaji += num(r.gajibulat);
@@ -320,6 +325,7 @@ function barisDari(d: any): RowGajiPkrt {
     simpankoperasi: num(d.simpankoperasi),
     cicilan: num(d.cicilan),
     simpananpokok: num(d.simpananpokok),
+    sisaangsuran: num(d.sisaangsuran),
     angsuran: num(d.angsuran),
     poin: num(d.poin),
     hariinsentif: num(d.hariinsentif),
@@ -482,6 +488,7 @@ async function simpan() {
         simpankoperasi: num(r.simpankoperasi),
         cicilan: num(r.cicilan),
         simpananpokok: num(r.simpananpokok),
+        sisaangsuran: num(r.sisaangsuran),
         angsuran: num(r.angsuran),
       })),
     };
@@ -780,6 +787,7 @@ const editableColumns = [
   { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
   { key: "angsuran", label: "Angsuran", width: "95px", align: "c" },
   { key: "simpananpokok", label: "Simpanan Pokok", width: "115px", align: "c" },
+  { key: "sisaangsuran", label: "Sisa Angsuran", width: "110px", align: "c" },
 ] as const;
 
 interface Kolom {
@@ -1058,6 +1066,14 @@ onMounted(() => {
                 />
               </td>
               <td class="c">
+                <CurrencyInput
+                  :model-value="r.sisaangsuran"
+                  class="cell-input"
+                  title="Sisa Angsuran — informasi koperasi, tidak mengurangi Total Potongan"
+                  @update:model-value="(v) => isiManual(r, 'sisaangsuran', v)"
+                />
+              </td>
+              <td class="c">
                 <button class="row-btn" title="Cetak slip gaji karyawan ini" @click="cetakSatu(r)">
                   <MsIcon name="print" :size="13" />
                 </button>
@@ -1083,6 +1099,7 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.simpananpokok) }}</td>
+              <td class="r strong">{{ fmt(total.sisaangsuran) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -1090,7 +1107,7 @@ onMounted(() => {
       </div>
       <div class="table-note">
         <MsIcon name="info" :size="13" />
-        Kolom <b>Poin / Hari Insentif / PPh21 / Angsuran / Simpanan Pokok</b> diketik
+        Kolom <b>Poin / Hari Insentif / PPh21 / Angsuran / Simpanan Pokok / Sisa Angsuran</b> diketik
         manual di grid (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
         &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b>
         diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,

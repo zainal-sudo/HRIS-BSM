@@ -36,6 +36,7 @@ export interface SlipGajiPkrtItem {
   cicilan: number;
   angsuran?: number;
   simpananpokok?: number;
+  sisaangsuran?: number;
   koreksi?: number;
   haripotong?: number;
   nominalpotgaji?: number;
@@ -178,6 +179,7 @@ const rowHtml = (r: SlipGajiPkrtItem): string => {
 
       <div class="box">
         ${baris("SIMPANAN POKOK", fmt(r.simpananpokok))}
+        ${baris("SISA ANGSURAN", fmt(r.sisaangsuran))}
       </div>
 
       <div class="box">
@@ -329,6 +331,7 @@ async function renderPdfBlob(r: SlipGajiPkrtItem): Promise<{ blob: Blob; filenam
 
   kotak(() => {
     baris("SIMPANAN POKOK", fmt(r.simpananpokok));
+    baris("SISA ANGSURAN", fmt(r.sisaangsuran));
   });
 
   kotak(() => {

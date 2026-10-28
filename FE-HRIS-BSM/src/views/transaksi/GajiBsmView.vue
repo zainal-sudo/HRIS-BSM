@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import MsIcon from "@/components/MsIcon.vue";
 import CetakSlipGajiBsm, { type SlipGajiBsmItem } from "@/components/CetakSlipGajiBsm.vue";
+import CurrencyInput from "@/components/CurrencyInput.vue";
 import { api, getErrorMessage } from "@/api/axios";
 import { formatNumber } from "@/utils/format";
 import { sortByKey, nextSort, sortIconName, filterByValueSets, distinctValues, type SortDir } from "@/utils/table";
@@ -947,18 +948,18 @@ onMounted(() => {
               <td :title="r.jabatan">{{ r.jabatan }}</td>
               <td>{{ r.unit || "-" }}</td>
               <td class="r">{{ fmt(r.gapok) }}</td>
-              <td class="c"><input v-model.number="r.tjabatan" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.tkompetensi" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.tabsensi" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.potjabatan" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.bpjs" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.bpjstk" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.koperasi" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.tidakmasuk" class="cell-input" type="number" min="0" step="1" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.terlambat" class="cell-input" type="number" min="0" step="1" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.potonghari" class="cell-input" type="number" min="0" step="1" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.angsuran" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.pph21" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
+              <td class="c"><CurrencyInput v-model="r.tjabatan" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.tkompetensi" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.tabsensi" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.potjabatan" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.bpjs" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.bpjstk" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
               <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
               <td class="r">{{ fmt(r.potongan) }}</td>
               <td>{{ r.rekening || "-" }}</td>
