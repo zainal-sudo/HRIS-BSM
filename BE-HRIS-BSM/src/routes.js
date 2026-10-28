@@ -78,6 +78,7 @@ import {
     getKaryawanBsm,
     getAbsensiBsm,
     getGajiBsm,
+    getRekapTransferBsm,
     simpanGajiBsm,
     kirimSlipGajiBsm,
     tesSmtpBsm
@@ -313,6 +314,7 @@ router.get('/gaji-roti/smtp-test', tesSmtp)
 router.get('/gaji-bsm/karyawan', getKaryawanBsm)
 router.get('/gaji-bsm/absensi', getAbsensiBsm)
 router.get('/gaji-bsm', getGajiBsm)
+router.get('/gaji-bsm/rekap-transfer', getRekapTransferBsm)
 router.post('/gaji-bsm/simpan', simpanGajiBsm)
 router.post('/gaji-bsm/kirim-slip', express.json({ limit: '8mb' }), kirimSlipGajiBsm)
 router.get('/gaji-bsm/smtp-test', tesSmtpBsm)

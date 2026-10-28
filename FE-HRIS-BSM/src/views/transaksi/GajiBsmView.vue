@@ -463,34 +463,6 @@ async function simpan() {
   }
 }
 
-function exportCsv() {
-  if (rows.value.length === 0) return;
-  const header = [
-    "NIK", "Nama", "Jabatan", "Unit", "Gaji Pokok", "Tunjangan Jabatan",
-    "Tunjangan Kompetensi", "Tunjangan Absensi", "Potongan Jabatan", "BPJS",
-    "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Potong Hari",
-    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Total Potongan", "Total Gaji", "Rekening",
-  ];
-  const lines = sortedRows.value.map((r) =>
-    [
-      r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan), num(r.tkompetensi),
-      num(r.tabsensi), num(r.potjabatan), num(r.bpjs), num(r.bpjstk), num(r.koperasi),
-      num(r.tidakmasuk), num(r.terlambat), num(r.potonghari), num(r.angsuran), num(r.pph21),
-      num(r.koreksi), num(r.potongan), num(r.total), r.rekening,
-    ]
-      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-      .join(",")
-  );
-  const blob = new Blob(["\ufeff" + [header.join(","), ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `gaji-bsm_${filters.tahun}_${String(filters.periode).padStart(2, "0")}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 async function exportExcel() {
   if (sortedRows.value.length === 0) return;
   const columns = [
@@ -513,6 +485,56 @@ async function exportExcel() {
     toast.success(`${sortedRows.value.length} baris berhasil di-export ke Excel`);
   } catch {
     toast.error("Gagal export Excel");
+  }
+}
+
+type JenisRekap = "bpjs" | "reguler";
+const rekapLoading = ref<"" | JenisRekap>("");
+interface RowRekapTransfer {
+  nik: string;
+  nama: string;
+  totalTransfer: number;
+  rekening: string;
+}
+
+/**
+ * Export Rekap BPJS / Rekap Reguler — duplikasi Export Rekap BPJS
+ * (cxButton6Click) & Export Rekap Reguler (cxButton9Click) di
+ * ufrmProsesGaji.pas. Data diambil dari server (tgajibulanan periode
+ * terpilih), bukan dari grid; output Excel 3 kolom: Nama,
+ * Total Transfer, Rekening (persis cxGrid2 di Delphi).
+ */
+async function exportRekapTransfer(jenis: JenisRekap) {
+  if (rekapLoading.value !== "") return;
+  rekapLoading.value = jenis;
+  try {
+    const { data } = await api.get("/gaji-bsm/rekap-transfer", {
+      params: { periode: filters.periode, tahun: filters.tahun, jenis },
+    });
+    const rows: RowRekapTransfer[] = data.data?.rows || [];
+    if (rows.length === 0) {
+      toast.info(`Tidak ada data tersimpan periode ${periodeLabel.value}`);
+      return;
+    }
+    const label = jenis === "bpjs" ? "Rekap BPJS" : "Rekap Reguler";
+    try {
+      await exportRowsToXlsx(
+        [
+          { label: "Nama", width: 30 },
+          { label: "Total Transfer", width: 16 },
+          { label: "Rekening", width: 22 },
+        ],
+        rows.map((r) => [r.nama, r.totalTransfer, r.rekening]),
+        `${jenis === "bpjs" ? "rekap-bpjs" : "rekap-reguler"}_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
+      );
+      toast.success(`${label}: ${rows.length} baris berhasil di-export ke Excel`);
+    } catch {
+      toast.error(`Gagal export ${label}`);
+    }
+  } catch (e) {
+    toast.error(getErrorMessage(e, "Gagal mengambil data rekap transfer"));
+  } finally {
+    rekapLoading.value = "";
   }
 }
 
@@ -844,11 +866,26 @@ onMounted(() => {
         <button class="btn" @click="kosongkanGrid">
           <MsIcon name="filter_list_off" :size="15" /> Kosongkan
         </button>
-        <button class="btn" :disabled="rows.length === 0" @click="exportCsv">
-          <MsIcon name="download" :size="15" /> Export CSV
-        </button>
         <button class="btn" :disabled="rows.length === 0" @click="exportExcel">
           <MsIcon name="download" :size="15" /> Export Excel
+        </button>
+        <button
+          class="btn"
+          :disabled="rekapLoading !== ''"
+          title="Rekap transfer BPJS: total transfer dibatasi plafon gaji BPJS (persis ufrmProsesGaji Delphi)"
+          @click="exportRekapTransfer('bpjs')"
+        >
+          <MsIcon name="account_balance" :size="15" />
+          {{ rekapLoading === "bpjs" ? "Exporting..." : "Export Rekap BPJS" }}
+        </button>
+        <button
+          class="btn"
+          :disabled="rekapLoading !== ''"
+          title="Rekap transfer reguler: sisa total gaji setelah ditarik plafon gaji BPJS (persis ufrmProsesGaji Delphi)"
+          @click="exportRekapTransfer('reguler')"
+        >
+          <MsIcon name="credit_card" :size="15" />
+          {{ rekapLoading === "reguler" ? "Exporting..." : "Export Rekap Reguler" }}
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="cetakSemua">
           <MsIcon name="print" :size="15" /> Cetak Semua Slip

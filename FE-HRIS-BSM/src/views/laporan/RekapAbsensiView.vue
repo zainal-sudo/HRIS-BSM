@@ -114,23 +114,6 @@ async function load() {
   }
 }
 
-function exportCsv() {
-  if (displayRows.value.length === 0) return;
-  const keys = ["NIK", ...Object.keys(rows.value[0]).filter((k) => k.toLowerCase() !== "nik")];
-  const header = keys.join(",");
-  const lines = displayRows.value.map((r) =>
-    keys.map((k) => `"${(pickCell(r, k) ?? "").toString().replace(/"/g, '""')}"`).join(",")
-  );
-  const blob = new Blob(["\ufeff" + [header, ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `rekap-absensi_${filters.start_date}_${filters.end_date}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 async function exportExcel() {
   if (exporting.value || displayRows.value.length === 0) return;
   exporting.value = true;
@@ -178,9 +161,6 @@ onMounted(load);
         </button>
         <button class="btn primary" :disabled="loading" @click="load">
           <MsIcon name="refresh" :size="15" /> {{ loading ? "Memuat..." : "Muat Rekap" }}
-        </button>
-        <button class="btn" :disabled="displayRows.length === 0" @click="exportCsv">
-          <MsIcon name="download" :size="15" /> Export CSV
         </button>
         <button class="btn" :disabled="displayRows.length === 0 || exporting" @click="exportExcel">
           <MsIcon name="file_excel" :size="15" /> {{ exporting ? "Exporting..." : "Export Excel" }}

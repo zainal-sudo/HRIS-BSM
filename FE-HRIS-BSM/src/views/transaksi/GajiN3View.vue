@@ -476,36 +476,6 @@ async function simpan() {
   }
 }
 
-function exportCsv() {
-  if (rows.value.length === 0) return;
-  const header = [
-    "NIK", "Nama", "Jabatan", "Departemen", "Unit", "Gaji Pokok", "Tunj. Jabatan",
-    "Tunj. Kompetensi", "Tunj. Makan", "Tunj. Transport", "Poin", "Lembur",
-    "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Hari",
-    "Angsuran", "PPh21", "Koreksi Bln Lalu", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
-    "Total Gaji", "Rekening",
-  ];
-  const lines = sortedRows.value.map((r) =>
-    [
-      r.nik, r.nama, r.jabatan, r.departemen, r.unit, num(r.gapok), num(r.tjabatan),
-      num(r.tkompetensi), num(r.tmakan), num(r.transport), num(r.poin), num(r.lembur),
-      num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat),
-      num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
-      num(r.sisaangsuran), num(r.potongan), num(r.total), r.rekening,
-    ]
-      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-      .join(",")
-  );
-  const blob = new Blob(["\ufeff" + [header.join(","), ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `gaji-n3_${filters.tahun}_${String(filters.periode).padStart(2, "0")}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 async function exportExcel() {
   if (sortedRows.value.length === 0) return;
   const columns = [
@@ -867,9 +837,6 @@ onMounted(() => {
         </button>
         <button class="btn" @click="kosongkanGrid">
           <MsIcon name="filter_list_off" :size="15" /> Kosongkan
-        </button>
-        <button class="btn" :disabled="rows.length === 0" @click="exportCsv">
-          <MsIcon name="download" :size="15" /> Export CSV
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="exportExcel">
           <MsIcon name="download" :size="15" /> Export Excel

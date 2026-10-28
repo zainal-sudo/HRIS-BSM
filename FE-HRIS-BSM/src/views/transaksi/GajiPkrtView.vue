@@ -502,37 +502,6 @@ async function simpan() {
   }
 }
 
-function exportCsv() {
-  if (rows.value.length === 0) return;
-  const header = [
-    "NIK", "Nama", "Jabatan", "Unit", "Gapok", "Tunj. Jabatan",
-    "Tunj. Kompetensi", "Tunj. Makan", "THP", "Poin", "Lembur",
-    "Hari Insentif", "Insentif", "PPh21", "Koreksi Bln Lalu", "BPJS Kesehatan", "BPJS TK",
-    "Simpanan Koperasi", "Cicilan", "Angsuran", "Simpanan Pokok", "Hari Potong",
-    "Potong Gaji", "Total Potongan", "Gaji", "Gaji Bulat", "Rekening",
-  ];
-  const lines = sortedRows.value.map((r) =>
-    [
-      r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan),
-      num(r.tkompetensi), num(r.tmakan), num(r.thp), num(r.poin), num(r.lembur),
-      num(r.hariinsentif), num(r.insentif), num(r.pph21), num(r.koreksi), num(r.bpjskesehatan),
-      num(r.bpjstk), num(r.simpankoperasi), num(r.cicilan), num(r.angsuran),
-      num(r.simpananpokok), num(r.haripotong),
-      num(r.nominalpotgaji), num(r.potongan), num(r.gaji), num(r.gajibulat), r.rekening,
-    ]
-      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-      .join(",")
-  );
-  const blob = new Blob(["\ufeff" + [header.join(","), ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `gaji-pkrt_${filters.tahun}_${String(filters.periode).padStart(2, "0")}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 async function exportExcel() {
   if (sortedRows.value.length === 0) return;
   const columns = [
@@ -893,9 +862,6 @@ onMounted(() => {
         </button>
         <button class="btn" @click="kosongkanGrid">
           <MsIcon name="filter_list_off" :size="15" /> Kosongkan
-        </button>
-        <button class="btn" :disabled="rows.length === 0" @click="exportCsv">
-          <MsIcon name="download" :size="15" /> Export CSV
         </button>
         <button class="btn" :disabled="rows.length === 0" @click="exportExcel">
           <MsIcon name="download" :size="15" /> Export Excel

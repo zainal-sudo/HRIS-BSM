@@ -264,6 +264,109 @@ export const getAbsensiBsm = async (req, res, next) => {
 }
 
 /**
+ * GET /api/gaji-bsm/rekap-transfer?periode=&tahun=&jenis=bpjs|reguler
+ *
+ * Duplikasi Export Rekap BPJS (cxButton6Click) & Export Rekap Reguler
+ * (cxButton9Click) di ufrmProsesGaji.pas — data diambil langsung dari
+ * tgajibulanan periode terpilih, bukan dari grid.
+ *
+ * Delphi:
+ *   asimpanan = SUM(gb_angsuran + gb_koperasi) seluruh baris periode tsb
+ *   total     = (gapok + (tjab-potjab) + tkompetensi + tabsensi) - seluruh
+ *               potongan (bpjs + bpjstk + koperasi + angsuran + telat*5000
+ *               + pot. hari + tidak masuk + pph21)  [tanpa koreksi]
+ *   Total_transfer (lihat cxGrid2: Nama, Total Transfer, Rekening):
+ *     Rekap BPJS    : 0 jika (gapok<=1 dan nik<>"003");
+ *                     asimpanan jika nik="003";
+ *                     capbpjs jika total>capbpjs, selain itu total
+ *     Rekap Reguler : 0 jika (gapok<=1 dan nik<>"003");
+ *                     asimpanan jika nik="003";
+ *                     total-capbpjs jika total>capbpjs, selain itu 0
+ */
+export const getRekapTransferBsm = async (req, res, next) => {
+    try {
+        const periode = parseInt(req.query.periode)
+        const tahun = parseInt(req.query.tahun)
+        const jenis = String(req.query.jenis || 'bpjs').toLowerCase()
+
+        if (!periode || periode < 1 || periode > 12) {
+            return error(res, 'Periode (bulan) tidak valid', 400)
+        }
+        if (!tahun || tahun < 2000 || tahun > 2100) {
+            return error(res, 'Tahun tidak valid', 400)
+        }
+        if (jenis !== 'bpjs' && jenis !== 'reguler') {
+            return error(res, 'Jenis rekap harus bpjs atau reguler', 400)
+        }
+
+        // asimpanan: SUM angsuran + koperasi seluruh periode (tanpa filter unit)
+        const [[sumRow]] = await poolBsm.queryWithRetry(
+            `SELECT COALESCE(SUM(gb_angsuran + gb_koperasi), 0) AS asimpanan
+       FROM tgajibulanan WHERE gb_periode = ? AND gb_tahun = ?`,
+            [periode, tahun]
+        )
+        const asimpanan = num(sumRow.asimpanan)
+
+        const [rows] = await poolBsm.queryWithRetry(
+            `SELECT
+        g.gb_nik AS nik,
+        g.gb_nama AS nama,
+        COALESCE(g.gb_gapok, 0) AS gapok,
+        COALESCE(k.kar_gajibpjs, 0) AS capbpjs,
+        (COALESCE(g.gb_gapok, 0)
+          + (COALESCE(g.gb_tunjanganjabatan, 0) - COALESCE(g.gb_potonganjabatan, 0))
+          + COALESCE(g.gb_tunjangankompetensi, 0) + COALESCE(g.gb_tunjanganabsensi, 0))
+        - (COALESCE(g.gb_bpjs, 0) + COALESCE(g.gb_bpjstk, 0) + COALESCE(g.gb_koperasi, 0)
+          + COALESCE(g.gb_angsuran, 0) + (COALESCE(g.gb_hariterlambat, 0) * 5000)
+          + (COALESCE(g.gb_potonganhari, 0)
+             * (COALESCE(g.gb_gapok, 0)
+                + (COALESCE(g.gb_tunjanganjabatan, 0) - COALESCE(g.gb_potonganjabatan, 0))
+                + COALESCE(g.gb_tunjanganabsensi, 0)) / 25)
+          + (COALESCE(g.gb_haritidakmasuk, 0) * COALESCE(g.gb_tunjanganabsensi, 0) / 25)
+          + COALESCE(g.gb_pph21, 0)) AS total,
+        COALESCE(k.kar_rekeningbank, '') AS rekening
+      FROM tgajibulanan g
+      LEFT JOIN tkaryawan k ON k.kar_Nik = g.gb_nik
+      WHERE g.gb_periode = ? AND g.gb_tahun = ?
+      ORDER BY g.gb_nik`,
+            [periode, tahun]
+        )
+
+        const data = rows.map((r) => {
+            const nik = String(r.nik || '').trim()
+            let totalTransfer
+            if (num(r.gapok) <= 1 && nik !== '003') {
+                totalTransfer = 0
+            } else if (nik === '003') {
+                totalTransfer = asimpanan
+            } else if (num(r.total) > num(r.capbpjs)) {
+                totalTransfer = jenis === 'bpjs' ? num(r.capbpjs) : num(r.total) - num(r.capbpjs)
+            } else {
+                totalTransfer = jenis === 'bpjs' ? num(r.total) : 0
+            }
+            return {
+                nik,
+                nama: r.nama || '',
+                totalTransfer: Math.round(totalTransfer),
+                rekening: String(r.rekening || '').trim(),
+            }
+        })
+
+        success(res, {
+            periode,
+            tahun,
+            jenis,
+            asimpanan,
+            rows: data,
+            jumlah: data.length,
+        }, `${data.length} baris rekap transfer ${jenis.toUpperCase()} periode ${periode}/${tahun}`)
+
+    } catch (err) {
+        next(err)
+    }
+}
+
+/**
  * POST /api/gaji-bsm/simpan
  * Simpan hasil proses: hapus dulu periode tsb, lalu insert ulang
  * (persis seperti simpandata di Delphi) dalam satu transaksi.

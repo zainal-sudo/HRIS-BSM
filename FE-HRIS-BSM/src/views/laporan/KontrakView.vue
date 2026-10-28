@@ -125,23 +125,6 @@ async function updateStatus() {
   }
 }
 
-function exportCsv() {
-  const list = displayRows.value;
-  if (list.length === 0) return;
-  const header = columns.value.map((c) => c.label).join(",");
-  const lines = list.map((r) =>
-    columns.value.map((c) => `"${(r[c.key] ?? "").toString().replace(/"/g, '""')}"`).join(",")
-  );
-  const blob = new Blob(["\ufeff" + [header, ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "laporan-kontrak-berakhir.csv";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 onMounted(load);
 </script>
 
@@ -158,9 +141,6 @@ onMounted(load);
         </button>
         <button class="btn primary" :disabled="loading" @click="load">
           <MsIcon name="refresh" :size="15" /> {{ loading ? "Memuat..." : "Muat Ulang" }}
-        </button>
-        <button class="btn" :disabled="displayRows.length === 0" @click="exportCsv">
-          <MsIcon name="download" :size="15" /> Export CSV
         </button>
       </div>
     </div>
