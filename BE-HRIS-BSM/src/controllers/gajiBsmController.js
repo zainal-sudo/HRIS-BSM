@@ -274,7 +274,7 @@ export const getAbsensiBsm = async (req, res, next) => {
  *   asimpanan = SUM(gb_angsuran + gb_koperasi) seluruh baris periode tsb
  *   total     = (gapok + (tjab-potjab) + tkompetensi + tabsensi) - seluruh
  *               potongan (bpjs + bpjstk + koperasi + angsuran + telat*5000
- *               + pot. hari + tidak masuk + pph21)  [tanpa koreksi]
+ *               + pot. hari + tidak masuk + pph21) + koreksi
  *   Total_transfer (lihat cxGrid2: Nama, Total Transfer, Rekening):
  *     Rekap BPJS    : 0 jika (gapok<=1 dan nik<>"003");
  *                     asimpanan jika nik="003";
@@ -323,7 +323,7 @@ export const getRekapTransferBsm = async (req, res, next) => {
                 + (COALESCE(g.gb_tunjanganjabatan, 0) - COALESCE(g.gb_potonganjabatan, 0))
                 + COALESCE(g.gb_tunjanganabsensi, 0)) / 25)
           + (COALESCE(g.gb_haritidakmasuk, 0) * COALESCE(g.gb_tunjanganabsensi, 0) / 25)
-          + COALESCE(g.gb_pph21, 0)) AS total,
+          + COALESCE(g.gb_pph21, 0)) + COALESCE(g.gb_koreksi, 0) AS total,
         COALESCE(k.kar_rekeningbank, '') AS rekening
       FROM tgajibulanan g
       LEFT JOIN tkaryawan k ON k.kar_Nik = g.gb_nik
