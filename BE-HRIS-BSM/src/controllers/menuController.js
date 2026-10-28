@@ -9,7 +9,7 @@ export const getAllHakUser = async (req, res, next) => {
     try {
         const [users] = await pool.query(
             `SELECT \`user\` AS USER_KODE, \`user\` AS USER_NAMA
-       FROM tuser 
+        FROM tusernew 
        ORDER BY \`user\``
         )
 

@@ -150,7 +150,7 @@ router.use(verifyToken)
 
 router.post('/auth/logout', logout)
 
-// Master User (tuser + tmenu + thakuser, merujuk ke Web Entri)
+// Master User (tusernew + tmenu + thakuser, merujuk ke Web Entri)
 router.get('/users', getBrowseUser)
 router.get('/users/unit-list', getUnitListUser)
 router.get('/users/menus', getAllMenusUser)

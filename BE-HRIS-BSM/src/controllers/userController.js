@@ -4,7 +4,7 @@ import { success, error } from '../helpers/response.js'
 /**
  * Master User — merujuk ke Web Entri (masterUserService + masterUserFormService)
  * Disesuaikan ke skema HRIS:
- *   tuser   : user (PK), passw (plain-text, ikut authController), kd_unit, kar_nik
+ *   tusernew: user (PK), passw (plain-text, ikut authController), kd_unit, kar_nik
  *   tmenu   : MEN_ID, MEN_NAMA2, men_route, men_parent_id + tmenuparent
  *   thakuser: HAK_USER_KODE, HAK_MEN_ID, hak_men_insert/edit/delete
  *             (tanpa kolom view — adanya baris = boleh view, sama seperti Entri)
@@ -19,7 +19,7 @@ export const getBrowse = async (req, res, next) => {
                 u.kd_unit AS KdUnit,
                 t.nm_unit AS Unit,
                 u.kar_nik AS Nik
-            FROM tuser u
+            FROM tusernew u
             LEFT JOIN tunit t ON u.kd_unit = t.kd_unit
             ORDER BY u.user`
         )
@@ -72,7 +72,7 @@ export const getDetail = async (req, res, next) => {
                 u.user AS kode,
                 u.kd_unit AS kd_unit,
                 u.kar_nik AS kar_nik
-            FROM tuser u
+            FROM tusernew u
             WHERE u.user = ?`,
             [req.params.kode]
         )
@@ -116,24 +116,24 @@ export const saveUser = async (req, res, next) => {
         await conn.beginTransaction()
 
         if (isEdit) {
-            const [existing] = await conn.query(`SELECT user FROM tuser WHERE user = ?`, [userKode])
+            const [existing] = await conn.query(`SELECT user FROM tusernew WHERE user = ?`, [userKode])
             if (existing.length === 0) {
                 await conn.rollback()
                 return error(res, 'User tidak ditemukan', 404)
             }
             if (password && String(password).trim()) {
                 await conn.query(
-                    `UPDATE tuser SET passw = ?, kd_unit = ?, kar_nik = ? WHERE user = ?`,
+                    `UPDATE tusernew SET passw = ?, kd_unit = ?, kar_nik = ? WHERE user = ?`,
                     [String(password), kd_unit || null, kar_nik || null, userKode]
                 )
             } else {
                 await conn.query(
-                    `UPDATE tuser SET kd_unit = ?, kar_nik = ? WHERE user = ?`,
+                    `UPDATE tusernew SET kd_unit = ?, kar_nik = ? WHERE user = ?`,
                     [kd_unit || null, kar_nik || null, userKode]
                 )
             }
         } else {
-            const [existing] = await conn.query(`SELECT user FROM tuser WHERE user = ?`, [userKode])
+            const [existing] = await conn.query(`SELECT user FROM tusernew WHERE user = ?`, [userKode])
             if (existing.length > 0) {
                 await conn.rollback()
                 return error(res, 'Kode user sudah digunakan', 409)
@@ -143,7 +143,7 @@ export const saveUser = async (req, res, next) => {
                 return error(res, 'Password wajib diisi untuk user baru', 400)
             }
             await conn.query(
-                `INSERT INTO tuser (user, passw, kd_unit, kar_nik) VALUES (?, ?, ?, ?)`,
+                `INSERT INTO tusernew (user, passw, kd_unit, kar_nik) VALUES (?, ?, ?, ?)`,
                 [userKode, String(password), kd_unit || null, kar_nik || null]
             )
         }
@@ -186,7 +186,7 @@ export const deleteUser = async (req, res, next) => {
             return error(res, 'User pusat tidak boleh dihapus', 400)
         }
         await pool.query(`DELETE FROM thakuser WHERE HAK_USER_KODE = ?`, [req.params.kode])
-        const [result] = await pool.query(`DELETE FROM tuser WHERE user = ?`, [req.params.kode])
+        const [result] = await pool.query(`DELETE FROM tusernew WHERE user = ?`, [req.params.kode])
         if (result.affectedRows === 0) {
             return error(res, 'User tidak ditemukan', 404)
         }

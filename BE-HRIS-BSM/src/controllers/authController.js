@@ -12,7 +12,7 @@ export const login = async (req, res, next) => {
 
         const [users] = await pool.query(
             `SELECT u.user, u.kd_unit, u.passw, u.kar_nik, t.nm_unit 
-       FROM tuser u 
+       FROM tusernew u 
        LEFT JOIN tunit t ON u.kd_unit = t.kd_unit 
        WHERE UPPER(u.user) = ?`,
             [username.toUpperCase()]
