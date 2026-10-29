@@ -19,7 +19,7 @@ import {
 } from "@/utils/folderAccess";
 
 /**
- * Proses Gaji PKRT — padanan form proses gaji PKRT lama (Delphi),
+ * Proses Gaji PKRT â€” padanan form proses gaji PKRT lama (Delphi),
  * memakai database server utama.
  *
  * Rumus mengikuti file acuan "PKRT sept 2026 Payroll.xlsx" (sheet all+rekap):
@@ -195,7 +195,7 @@ const num = (v: unknown): number => {
   return isNaN(n) ? 0 : n;
 };
 
-/** Hitung ulang kolom turunan — identik dengan hitungGajiPkrt() di backend */
+/** Hitung ulang kolom turunan â€” identik dengan hitungGajiPkrt() di backend */
 function recalc(r: RowGajiPkrt) {
   const thp = num(r.gapok) + num(r.tjabatan) + num(r.tkompetensi) + num(r.tmakan);
   const lembur = (num(r.poin) / PEMBAGI_LEMBUR) * thp;
@@ -242,7 +242,7 @@ const periodeLabel = computed(() => `${namaBulan.value} ${filters.tahun}`);
 
 const total = computed(() => {
   const t = {
-    gapok: 0, tunjangan: 0, tjabatan: 0, tkompetensi: 0, thp: 0, lembur: 0, insentif: 0,
+    gapok: 0, tunjangan: 0, tjabatan: 0, tkompetensi: 0, tmakan: 0, thp: 0, lembur: 0, insentif: 0,
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
     koreksi: 0,
     bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
@@ -256,6 +256,7 @@ const total = computed(() => {
     t.tunjangan += num(r.tjabatan) + num(r.tkompetensi) + num(r.tmakan);
     t.tjabatan += num(r.tjabatan);
     t.tkompetensi += num(r.tkompetensi);
+    t.tmakan += num(r.tmakan);
     t.thp += num(r.thp);
     t.lembur += num(r.lembur);
     t.insentif += num(r.insentif);
@@ -774,6 +775,7 @@ const infoColumns = [
   { key: "jabatan", label: "Jabatan", width: "130px", align: "" },
   { key: "tjabatan", label: "Tunj. Jabatan", width: "100px", align: "r" },
   { key: "tkompetensi", label: "Tunj. Kompetensi", width: "115px", align: "r" },
+  { key: "tmakan", label: "Tunj. Makan", width: "100px", align: "r" },
   { key: "thp", label: "THP", width: "105px", align: "r" },
   { key: "lembur", label: "Lembur", width: "100px", align: "r" },
   { key: "insentif", label: "Insentif", width: "95px", align: "r" },
@@ -958,10 +960,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="24" class="row-empty">Memuat data...</td>
+              <td :colspan="25" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="24" class="row-empty">
+              <td :colspan="25" class="row-empty">
                 Belum ada data. Klik <b>Muat Karyawan</b> untuk memuat master, atau
                 <b>Muat Tersimpan</b> untuk membuka periode {{ periodeLabel }}.
               </td>
@@ -973,6 +975,7 @@ onMounted(() => {
               <td :title="r.jabatan">{{ r.jabatan || "-" }}</td>
               <td class="r">{{ fmt(r.tjabatan) }}</td>
               <td class="r">{{ fmt(r.tkompetensi) }}</td>
+              <td class="r">{{ fmt(r.tmakan) }}</td>
               <td class="r strong">{{ fmt(r.thp) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
               <td class="r">{{ fmt(r.insentif) }}</td>
@@ -1007,7 +1010,7 @@ onMounted(() => {
                 <CurrencyInput
                   :model-value="r.pph21"
                   class="cell-input"
-                  title="PPh21 periode ini — boleh diisi manual"
+                  title="PPh21 periode ini â€” boleh diisi manual"
                   @update:model-value="(v) => isiManual(r, 'pph21', v)"
                 />
               </td>
@@ -1017,7 +1020,7 @@ onMounted(() => {
                   class="cell-input"
                   type="number"
                   step="1000"
-                  title="Koreksi gaji bulan lalu — penambah gaji, boleh diisi minus"
+                  title="Koreksi gaji bulan lalu â€” penambah gaji, boleh diisi minus"
                   @input="isiManual(r, 'koreksi', r.koreksi)"
                 />
               </td>
@@ -1025,7 +1028,7 @@ onMounted(() => {
                 <CurrencyInput
                   :model-value="r.angsuran"
                   class="cell-input"
-                  title="Angsuran periode ini — boleh diisi manual (ikut Total Potongan)"
+                  title="Angsuran periode ini â€” boleh diisi manual (ikut Total Potongan)"
                   @update:model-value="(v) => isiManual(r, 'angsuran', v)"
                 />
               </td>
@@ -1033,7 +1036,7 @@ onMounted(() => {
                 <CurrencyInput
                   :model-value="r.simpananpokok"
                   class="cell-input"
-                  title="Simpanan Pokok — informasi koperasi, tidak mengurangi Total Potongan"
+                  title="Simpanan Pokok â€” informasi koperasi, tidak mengurangi Total Potongan"
                   @update:model-value="(v) => isiManual(r, 'simpananpokok', v)"
                 />
               </td>
@@ -1041,7 +1044,7 @@ onMounted(() => {
                 <CurrencyInput
                   :model-value="r.sisaangsuran"
                   class="cell-input"
-                  title="Sisa Angsuran — informasi koperasi, tidak mengurangi Total Potongan"
+                  title="Sisa Angsuran â€” informasi koperasi, tidak mengurangi Total Potongan"
                   @update:model-value="(v) => isiManual(r, 'sisaangsuran', v)"
                 />
               </td>
@@ -1057,6 +1060,7 @@ onMounted(() => {
               <td colspan="4" class="r strong frozen frozen-1">TOTAL</td>
               <td class="r strong">{{ fmt(total.tjabatan) }}</td>
               <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
+              <td class="r strong">{{ fmt(total.tmakan) }}</td>
               <td class="r strong">{{ fmt(total.thp) }}</td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.insentif) }}</td>
@@ -1091,7 +1095,7 @@ onMounted(() => {
         <b>Insentif</b> = Hari Insentif &times; {{ TARIF_INSENTIF.toLocaleString("id-ID") }},
         <b>Potong Gaji</b> = Hari Potong / {{ PEMBAGI_POTONG }} &times; THP.
         <b>Angsuran</b> ikut mengurangi <b>Total Potongan</b>, sedangkan <b>Simpanan Pokok</b>
-        hanya informasi koperasi (tampak di slip) tidak ikut Total Potongan — mengikuti
+        hanya informasi koperasi (tampak di slip) tidak ikut Total Potongan â€” mengikuti
         aturan Proses Gaji N3.
         <b>Gaji</b> = THP + Lembur + Insentif &minus; Total Potongan + <b>Koreksi Bln Lalu</b>
         (dibulatkan; koreksi penambah gaji, boleh diisi minus).
