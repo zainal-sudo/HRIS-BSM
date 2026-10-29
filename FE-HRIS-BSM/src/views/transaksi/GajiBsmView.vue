@@ -468,7 +468,8 @@ async function exportExcel() {
   const columns = [
     "NIK", "Nama", "Jabatan", "Unit", "Gaji Pokok", "Tunjangan Jabatan",
     "Tunjangan Kompetensi", "Tunjangan Absensi", "Potongan Jabatan", "BPJS",
-    "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Potong Hari",
+    "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Terlambat (Rp)",
+    "Potong Hari", "Pot. Hari Kerja (Rp)",
     "Angsuran", "PPh21", "Koreksi Bln Lalu", "Total Potongan", "Total Gaji", "Rekening",
   ];
   try {
@@ -477,7 +478,8 @@ async function exportExcel() {
       sortedRows.value.map((r) => [
         r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan), num(r.tkompetensi),
         num(r.tabsensi), num(r.potjabatan), num(r.bpjs), num(r.bpjstk), num(r.koperasi),
-        num(r.tidakmasuk), num(r.terlambat), num(r.potonghari), num(r.angsuran), num(r.pph21),
+        num(r.tidakmasuk), num(r.terlambat), num(r.potTerlambat), num(r.potonghari), num(r.potHarikerja),
+        num(r.angsuran), num(r.pph21),
         num(r.koreksi), num(r.potongan), num(r.total), r.rekening,
       ]),
       `gaji-bsm_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
