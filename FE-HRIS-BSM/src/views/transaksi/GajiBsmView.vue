@@ -777,7 +777,9 @@ const sortableColumns = [
   { key: "koperasi", label: "Koperasi", width: "90px", align: "c" },
   { key: "tidakmasuk", label: "Tidak Masuk", width: "95px", align: "c" },
   { key: "terlambat", label: "Terlambat", width: "85px", align: "c" },
+  { key: "potTerlambat", label: "Pot. Terlambat (Rp)", width: "110px", align: "r" },
   { key: "potonghari", label: "Pot. Hari", width: "85px", align: "c" },
+  { key: "potHarikerja", label: "Pot. Hari Kerja (Rp)", width: "110px", align: "r" },
   { key: "angsuran", label: "Angsuran", width: "90px", align: "c" },
   { key: "pph21", label: "PPh21", width: "90px", align: "c" },
   { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px", align: "c" },
@@ -971,10 +973,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="23" class="row-empty">Memuat data...</td>
+              <td :colspan="25" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="23" class="row-empty">
+              <td :colspan="25" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -993,8 +995,10 @@ onMounted(() => {
               <td class="c"><CurrencyInput v-model="r.bpjstk" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" @update:model-value="recalc(r)" /></td>
+              <td class="r">{{ fmt(r.potTerlambat) }}</td>
+              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" @update:model-value="recalc(r)" /></td>
+              <td class="r">{{ fmt(r.potHarikerja) }}</td>
               <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
               <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
@@ -1013,7 +1017,7 @@ onMounted(() => {
               <td colspan="5" class="r strong frozen frozen-1">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
               <td colspan="4" class="r strong">{{ fmt(total.tunjangan) }}</td>
-              <td colspan="8"></td>
+              <td colspan="10"></td>
               <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
