@@ -214,6 +214,7 @@ const total = computed(() => {
     t.tidakmasuk += num(r.tidakmasuk);
     t.terlambat += num(r.terlambat);
     t.potTerlambat += num(r.potTerlambat);
+    t.potHarikerja += num(r.potHarikerja);
     t.potonghari += num(r.potonghari);
     t.poin += num(r.poin);
     t.total += num(r.total);
@@ -485,7 +486,7 @@ async function exportExcel() {
   const columns = [
     "NIK", "Nama", "Jabatan", "Departemen", "Unit", "Gaji Pokok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "Tunj. Transport", "Poin", "Lembur",
-    "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Punishment", "Pot. Hari",
+    "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Punishment", "Pot. Hari", "Pot. Hari Kerja (Rp)",
     "Angsuran", "PPh21", "Koreksi Bln Lalu", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
     "Total Gaji", "Rekening",
   ];
@@ -496,7 +497,7 @@ async function exportExcel() {
         r.nik, r.nama, r.jabatan, r.departemen, r.unit, num(r.gapok), num(r.tjabatan),
         num(r.tkompetensi), num(r.tmakan), num(r.transport), num(r.poin), num(r.lembur),
         num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat), num(r.potTerlambat),
-        num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
+        num(r.potonghari), num(r.potHarikerja), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
         num(r.sisaangsuran), num(r.potongan), num(r.total), r.rekening,
       ]),
       `gaji-n3_${filters.tahun}_${String(filters.periode).padStart(2, "0")}`
@@ -759,6 +760,7 @@ const editableColumns = [
   { key: "terlambat", label: "Terlambat", width: "85px" },
   { key: "potTerlambat", label: "Punishment", width: "100px", align: "r" },
   { key: "potonghari", label: "Pot. Hari", width: "85px" },
+  { key: "potHarikerja", label: "Pot. Hari Kerja (Rp)", width: "100px", align: "r" },
   { key: "angsuran", label: "Angsuran", width: "90px" },
   { key: "pph21", label: "PPh21", width: "90px" },
   { key: "koreksi", label: "Koreksi Bln Lalu", width: "110px" },
@@ -934,10 +936,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="29" class="row-empty">Memuat data...</td>
+              <td :colspan="30" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="29" class="row-empty">
+              <td :colspan="30" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -964,7 +966,8 @@ onMounted(() => {
               <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
               <td class="r"><span class="cell-span">{{ fmt(r.potTerlambat) }}</span></td>
-              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" @update:model-value="recalc(r)" /></td>
+              <td class="r"><span class="cell-span">{{ fmt(r.potHarikerja) }}</span></td>
               <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
               <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
@@ -997,6 +1000,7 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.terlambat) }}</td>
               <td class="r strong">{{ fmt(total.potTerlambat) }}</td>
               <td class="r strong">{{ fmt(total.potonghari) }}</td>
+              <td class="r strong">{{ fmt(total.potHarikerja) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
               <td class="r strong">{{ fmt(total.koreksi) }}</td>

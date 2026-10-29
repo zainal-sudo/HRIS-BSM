@@ -468,7 +468,8 @@ async function exportExcel() {
   const columns = [
     "NIK", "Nama", "Jabatan", "Unit", "Gaji Pokok", "Tunjangan Jabatan",
     "Tunjangan Kompetensi", "Tunjangan Absensi", "Potongan Jabatan", "BPJS",
-    "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Terlambat (Rp)",
+    "BPJS TK", "Koperasi", "Tidak Masuk", "Pot. Tidak Masuk (Rp)",
+    "Terlambat", "Pot. Terlambat (Rp)",
     "Potong Hari", "Pot. Hari Kerja (Rp)",
     "Angsuran", "PPh21", "Koreksi Bln Lalu", "Total Potongan", "Total Gaji", "Rekening",
   ];
@@ -478,7 +479,8 @@ async function exportExcel() {
       sortedRows.value.map((r) => [
         r.nik, r.nama, r.jabatan, r.unit, num(r.gapok), num(r.tjabatan), num(r.tkompetensi),
         num(r.tabsensi), num(r.potjabatan), num(r.bpjs), num(r.bpjstk), num(r.koperasi),
-        num(r.tidakmasuk), num(r.terlambat), num(r.potTerlambat), num(r.potonghari), num(r.potHarikerja),
+        num(r.tidakmasuk), num(r.potTidakmasuk),
+        num(r.terlambat), num(r.potTerlambat), num(r.potonghari), num(r.potHarikerja),
         num(r.angsuran), num(r.pph21),
         num(r.koreksi), num(r.potongan), num(r.total), r.rekening,
       ]),
@@ -778,6 +780,7 @@ const sortableColumns = [
   { key: "bpjstk", label: "BPJS TK", width: "90px", align: "c" },
   { key: "koperasi", label: "Koperasi", width: "90px", align: "c" },
   { key: "tidakmasuk", label: "Tidak Masuk", width: "95px", align: "c" },
+  { key: "potTidakmasuk", label: "Pot. Tidak Masuk (Rp)", width: "115px", align: "r" },
   { key: "terlambat", label: "Terlambat", width: "85px", align: "c" },
   { key: "potTerlambat", label: "Pot. Terlambat (Rp)", width: "110px", align: "r" },
   { key: "potonghari", label: "Pot. Hari", width: "85px", align: "c" },
@@ -975,10 +978,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="25" class="row-empty">Memuat data...</td>
+              <td :colspan="26" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="25" class="row-empty">
+              <td :colspan="26" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -996,7 +999,8 @@ onMounted(() => {
               <td class="c"><CurrencyInput v-model="r.bpjs" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.bpjstk" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" @update:model-value="recalc(r)" /></td>
+              <td class="r">{{ fmt(r.potTidakmasuk) }}</td>
               <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" @update:model-value="recalc(r)" /></td>
               <td class="r">{{ fmt(r.potTerlambat) }}</td>
               <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" @update:model-value="recalc(r)" /></td>
@@ -1019,7 +1023,7 @@ onMounted(() => {
               <td colspan="5" class="r strong frozen frozen-1">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
               <td colspan="4" class="r strong">{{ fmt(total.tunjangan) }}</td>
-              <td colspan="10"></td>
+              <td colspan="11"></td>
               <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
