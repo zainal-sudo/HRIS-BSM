@@ -242,7 +242,7 @@ const periodeLabel = computed(() => `${namaBulan.value} ${filters.tahun}`);
 
 const total = computed(() => {
   const t = {
-    gapok: 0, tunjangan: 0, thp: 0, lembur: 0, insentif: 0,
+    gapok: 0, tunjangan: 0, tjabatan: 0, tkompetensi: 0, thp: 0, lembur: 0, insentif: 0,
     pph21: 0, bpjs: 0, lainnya: 0, potongan: 0, gaji: 0,
     koreksi: 0,
     bpjskesehatan: 0, bpjstk: 0, simpankoperasi: 0, cicilan: 0,
@@ -254,6 +254,8 @@ const total = computed(() => {
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
     t.tunjangan += num(r.tjabatan) + num(r.tkompetensi) + num(r.tmakan);
+    t.tjabatan += num(r.tjabatan);
+    t.tkompetensi += num(r.tkompetensi);
     t.thp += num(r.thp);
     t.lembur += num(r.lembur);
     t.insentif += num(r.insentif);
@@ -770,6 +772,8 @@ const infoColumns = [
   { key: "nik", label: "NIK", width: "100px", align: "" },
   { key: "nama", label: "Nama", width: "170px", align: "" },
   { key: "jabatan", label: "Jabatan", width: "130px", align: "" },
+  { key: "tjabatan", label: "Tunj. Jabatan", width: "100px", align: "r" },
+  { key: "tkompetensi", label: "Tunj. Kompetensi", width: "115px", align: "r" },
   { key: "thp", label: "THP", width: "105px", align: "r" },
   { key: "lembur", label: "Lembur", width: "100px", align: "r" },
   { key: "insentif", label: "Insentif", width: "95px", align: "r" },
@@ -954,10 +958,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="22" class="row-empty">Memuat data...</td>
+              <td :colspan="24" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="22" class="row-empty">
+              <td :colspan="24" class="row-empty">
                 Belum ada data. Klik <b>Muat Karyawan</b> untuk memuat master, atau
                 <b>Muat Tersimpan</b> untuk membuka periode {{ periodeLabel }}.
               </td>
@@ -967,6 +971,8 @@ onMounted(() => {
               <td class="frozen frozen-2">{{ r.nik }}</td>
               <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>
               <td :title="r.jabatan">{{ r.jabatan || "-" }}</td>
+              <td class="r">{{ fmt(r.tjabatan) }}</td>
+              <td class="r">{{ fmt(r.tkompetensi) }}</td>
               <td class="r strong">{{ fmt(r.thp) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
               <td class="r">{{ fmt(r.insentif) }}</td>
@@ -1049,6 +1055,8 @@ onMounted(() => {
           <tfoot v-if="rows.length > 0">
             <tr>
               <td colspan="4" class="r strong frozen frozen-1">TOTAL</td>
+              <td class="r strong">{{ fmt(total.tjabatan) }}</td>
+              <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
               <td class="r strong">{{ fmt(total.thp) }}</td>
               <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="r strong">{{ fmt(total.insentif) }}</td>
