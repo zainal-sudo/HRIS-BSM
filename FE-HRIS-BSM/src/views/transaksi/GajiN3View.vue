@@ -187,6 +187,9 @@ const total = computed(() => {
     koperasi: 0,
     tidakmasuk: 0,
     terlambat: 0,
+    potTerlambat: 0,
+    potHarikerja: 0,
+    potTidakmasuk: 0,
     potonghari: 0,
     poin: 0,
     total: 0,
@@ -210,6 +213,7 @@ const total = computed(() => {
     t.koperasi += num(r.koperasi);
     t.tidakmasuk += num(r.tidakmasuk);
     t.terlambat += num(r.terlambat);
+    t.potTerlambat += num(r.potTerlambat);
     t.potonghari += num(r.potonghari);
     t.poin += num(r.poin);
     t.total += num(r.total);
@@ -264,6 +268,9 @@ function barisDariMaster(d: any): RowGajiN3 {
     koperasi: num(d.koperasi),
     tidakmasuk: 0,
     terlambat: 0,
+    potTerlambat: 0,
+    potHarikerja: 0,
+    potTidakmasuk: 0,
     potonghari: 0,
     angsuran: 0,
     pph21: num(d.pph21),
@@ -481,7 +488,7 @@ async function exportExcel() {
   const columns = [
     "NIK", "Nama", "Jabatan", "Departemen", "Unit", "Gaji Pokok", "Tunj. Jabatan",
     "Tunj. Kompetensi", "Tunj. Makan", "Tunj. Transport", "Poin", "Lembur",
-    "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Pot. Hari",
+    "BPJS", "BPJS TK", "Koperasi", "Tidak Masuk", "Terlambat", "Punishment", "Pot. Hari",
     "Angsuran", "PPh21", "Koreksi Bln Lalu", "Simpanan Pokok", "Sisa Angsuran", "Total Potongan",
     "Total Gaji", "Rekening",
   ];
@@ -491,7 +498,7 @@ async function exportExcel() {
       sortedRows.value.map((r) => [
         r.nik, r.nama, r.jabatan, r.departemen, r.unit, num(r.gapok), num(r.tjabatan),
         num(r.tkompetensi), num(r.tmakan), num(r.transport), num(r.poin), num(r.lembur),
-        num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat),
+        num(r.bpjs), num(r.bpjstk), num(r.koperasi), num(r.tidakmasuk), num(r.terlambat), num(r.potTerlambat),
         num(r.potonghari), num(r.angsuran), num(r.pph21), num(r.koreksi), num(r.simpananpokok),
         num(r.sisaangsuran), num(r.potongan), num(r.total), r.rekening,
       ]),
@@ -753,6 +760,7 @@ const editableColumns = [
   { key: "koperasi", label: "Koperasi", width: "90px" },
   { key: "tidakmasuk", label: "Tidak Masuk", width: "95px" },
   { key: "terlambat", label: "Terlambat", width: "85px" },
+  { key: "potTerlambat", label: "Punishment", width: "100px", align: "r" },
   { key: "potonghari", label: "Pot. Hari", width: "85px" },
   { key: "angsuran", label: "Angsuran", width: "90px" },
   { key: "pph21", label: "PPh21", width: "90px" },
@@ -929,10 +937,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="28" class="row-empty">Memuat data...</td>
+              <td :colspan="29" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="28" class="row-empty">
+              <td :colspan="29" class="row-empty">
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
@@ -958,6 +966,7 @@ onMounted(() => {
               <td class="c"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
+              <td class="r"><span class="cell-span">{{ fmt(r.potTerlambat) }}</span></td>
               <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
@@ -989,6 +998,7 @@ onMounted(() => {
               <td class="r strong">{{ fmt(total.koperasi) }}</td>
               <td class="r strong">{{ fmt(total.tidakmasuk) }}</td>
               <td class="r strong">{{ fmt(total.terlambat) }}</td>
+              <td class="r strong">{{ fmt(total.potTerlambat) }}</td>
               <td class="r strong">{{ fmt(total.potonghari) }}</td>
               <td class="r strong">{{ fmt(total.angsuran) }}</td>
               <td class="r strong">{{ fmt(total.pph21) }}</td>
