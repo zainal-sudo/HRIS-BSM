@@ -175,6 +175,7 @@ const total = computed(() => {
     masuk: 0,
     potonggaji: 0,
     jamlembur: 0,
+    gapok: 0,
     lembur: 0,
     punishment: 0,
     koreksi: 0,
@@ -184,6 +185,7 @@ const total = computed(() => {
     t.masuk += num(r.masuk);
     t.potonggaji += num(r.potonggaji);
     t.jamlembur += num(r.jamlembur);
+    t.gapok += num(r.gapok);
     t.lembur += num(r.lembur);
     t.punishment += num(r.punishment);
     t.koreksi += num(r.koreksi);
@@ -876,7 +878,10 @@ onMounted(() => {
               <td class="c strong">{{ fmt(total.masuk) }}</td>
               <td class="c strong">{{ fmt(total.potonggaji) }}</td>
               <td class="c strong">{{ fmt(total.jamlembur, 1) }}</td>
-              <td colspan="4"></td>
+              <td></td>
+              <td class="r strong">{{ fmt(total.gapok) }}</td>
+              <td></td>
+              <td class="r strong">{{ fmt(total.lembur) }}</td>
               <td class="c strong">{{ fmt(total.punishment) }}</td>
               <td class="c strong">{{ fmt(total.koreksi) }}</td>
               <td></td>

@@ -198,19 +198,45 @@ const total = computed(() => {
   const t = {
     gapok: 0,
     tunjangan: 0,
-    potongan: 0,
-    pph21: 0,
+    tjabatan: 0,
+    tkompetensi: 0,
+    tabsensi: 0,
+    potjabatan: 0,
+    bpjs: 0,
+    bpjstk: 0,
+    koperasi: 0,
+    tidakmasuk: 0,
+    potTidakmasuk: 0,
+    terlambat: 0,
+    potTerlambat: 0,
+    potonghari: 0,
+    potHarikerja: 0,
     angsuran: 0,
+    pph21: 0,
     koreksi: 0,
+    potongan: 0,
     total: 0,
   };
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
     t.tunjangan += num(r.tjabatan) + num(r.tkompetensi) + num(r.tabsensi);
-    t.potongan += num(r.potongan);
-    t.pph21 += num(r.pph21);
+    t.tjabatan += num(r.tjabatan);
+    t.tkompetensi += num(r.tkompetensi);
+    t.tabsensi += num(r.tabsensi);
+    t.potjabatan += num(r.potjabatan);
+    t.bpjs += num(r.bpjs);
+    t.bpjstk += num(r.bpjstk);
+    t.koperasi += num(r.koperasi);
+    t.tidakmasuk += num(r.tidakmasuk);
+    t.potTidakmasuk += num(r.potTidakmasuk);
+    t.terlambat += num(r.terlambat);
+    t.potTerlambat += num(r.potTerlambat);
+    t.potonghari += num(r.potonghari);
+    t.potHarikerja += num(r.potHarikerja);
     t.angsuran += num(r.angsuran);
+    t.pph21 += num(r.pph21);
     t.koreksi += num(r.koreksi);
+    t.potongan += num(r.potongan);
     t.total += num(r.total);
   }
   return t;
@@ -1022,8 +1048,21 @@ onMounted(() => {
             <tr>
               <td colspan="5" class="r strong frozen frozen-1">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
-              <td colspan="4" class="r strong">{{ fmt(total.tunjangan) }}</td>
-              <td colspan="11"></td>
+              <td class="r strong">{{ fmt(total.tjabatan) }}</td>
+              <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
+              <td class="r strong">{{ fmt(total.tabsensi) }}</td>
+              <td class="r strong">{{ fmt(total.potjabatan) }}</td>
+              <td class="r strong">{{ fmt(total.bpjs) }}</td>
+              <td class="r strong">{{ fmt(total.bpjstk) }}</td>
+              <td class="r strong">{{ fmt(total.koperasi) }}</td>
+              <td class="r strong">{{ fmt(total.tidakmasuk) }}</td>
+              <td class="r strong">{{ fmt(total.potTidakmasuk) }}</td>
+              <td class="r strong">{{ fmt(total.terlambat) }}</td>
+              <td class="r strong">{{ fmt(total.potTerlambat) }}</td>
+              <td class="r strong">{{ fmt(total.potonghari) }}</td>
+              <td class="r strong">{{ fmt(total.potHarikerja) }}</td>
+              <td class="r strong">{{ fmt(total.angsuran) }}</td>
+              <td class="r strong">{{ fmt(total.pph21) }}</td>
               <td class="r strong">{{ fmt(total.koreksi) }}</td>
               <td class="r strong">{{ fmt(total.potongan) }}</td>
               <td></td>
