@@ -21,6 +21,7 @@ interface RowSettingGaji {
   nama: string;
   jabatan: string;
   gapok: number;
+  gajibpjs: number;
   tkompetensi: number;
   tjabatan: number;
   tlain: number;
@@ -83,9 +84,10 @@ const num = (v: unknown): number => {
 const fmt = (v: number) => formatNumber(Number(Number(v || 0).toFixed(0)));
 
 const total = computed(() => {
-  const t = { gapok: 0, tkompetensi: 0, tjabatan: 0, tlain: 0, tbpjstk: 0, tbpjs: 0, tkoperasi: 0, pph21: 0 };
+  const t = { gapok: 0, gajibpjs: 0, tkompetensi: 0, tjabatan: 0, tlain: 0, tbpjstk: 0, tbpjs: 0, tkoperasi: 0, pph21: 0 };
   for (const r of sortedRows.value) {
     t.gapok += num(r.gapok);
+    t.gajibpjs += num(r.gajibpjs);
     t.tkompetensi += num(r.tkompetensi);
     t.tjabatan += num(r.tjabatan);
     t.tlain += num(r.tlain);
@@ -127,6 +129,7 @@ async function muatData() {
       nama: d.nama,
       jabatan: d.jabatan || "",
       gapok: num(d.gapok),
+      gajibpjs: num(d.gajibpjs),
       tkompetensi: num(d.tkompetensi),
       tjabatan: num(d.tjabatan),
       tlain: num(d.tlain),
@@ -160,6 +163,7 @@ async function simpan() {
       rows: rows.value.map((r) => ({
         nik: r.nik,
         gapok: num(r.gapok),
+        gajibpjs: num(r.gajibpjs),
         tkompetensi: num(r.tkompetensi),
         tjabatan: num(r.tjabatan),
         tlain: num(r.tlain),
@@ -181,12 +185,12 @@ async function simpan() {
 function exportCsv() {
   if (rows.value.length === 0) return;
   const header = [
-    "NIK", "Nama", "Jabatan", "Gapok", "Tunj. Kompetensi", "Tunj. Jabatan",
+    "NIK", "Nama", "Jabatan", "Gapok", "Gaji BPJS", "Tunj. Kompetensi", "Tunj. Jabatan",
     "Tunj. Absensi", "BPJS TK", "BPJS", "Koperasi", "PPh21",
   ];
   const lines = sortedRows.value.map((r) =>
     [
-      r.nik, r.nama, r.jabatan, num(r.gapok), num(r.tkompetensi), num(r.tjabatan),
+      r.nik, r.nama, r.jabatan, num(r.gapok), num(r.gajibpjs), num(r.tkompetensi), num(r.tjabatan),
       num(r.tlain), num(r.tbpjstk), num(r.tbpjs), num(r.tkoperasi), num(r.pph21),
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -204,6 +208,7 @@ function exportCsv() {
 
 const editableColumns = [
   { key: "gapok", label: "Gapok", width: "110px" },
+  { key: "gajibpjs", label: "Gaji BPJS", width: "110px" },
   { key: "tkompetensi", label: "Tunj. Kompetensi", width: "120px" },
   { key: "tjabatan", label: "Tunj. Jabatan", width: "115px" },
   { key: "tlain", label: "Tunj. Absensi", width: "115px" },
@@ -319,10 +324,10 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td :colspan="12" class="row-empty">Memuat data...</td>
+              <td :colspan="13" class="row-empty">Memuat data...</td>
             </tr>
             <tr v-else-if="rows.length === 0">
-              <td :colspan="12" class="row-empty">
+              <td :colspan="13" class="row-empty">
                 Belum ada data. Pilih pabrik lalu klik "Refresh".
               </td>
             </tr>
@@ -332,6 +337,7 @@ onMounted(() => {
               <td :title="r.nama">{{ r.nama }}</td>
               <td :title="r.jabatan">{{ r.jabatan || "-" }}</td>
               <td class="c"><CurrencyInput v-model="r.gapok" class="cell-input" /></td>
+              <td class="c"><CurrencyInput v-model="r.gajibpjs" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.tkompetensi" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.tjabatan" class="cell-input" /></td>
               <td class="c"><CurrencyInput v-model="r.tlain" class="cell-input" /></td>
@@ -345,6 +351,7 @@ onMounted(() => {
             <tr>
               <td colspan="4" class="r strong">TOTAL</td>
               <td class="r strong">{{ fmt(total.gapok) }}</td>
+              <td class="r strong">{{ fmt(total.gajibpjs) }}</td>
               <td class="r strong">{{ fmt(total.tkompetensi) }}</td>
               <td class="r strong">{{ fmt(total.tjabatan) }}</td>
               <td class="r strong">{{ fmt(total.tlain) }}</td>

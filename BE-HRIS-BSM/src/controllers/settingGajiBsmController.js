@@ -25,6 +25,7 @@ const num = (v) => {
 // Kolom angka yang boleh diupdate + pemetaan ke kolom fisik tkaryawan
 const EDITABLE_COLUMNS = {
     gapok: 'kar_GAPOK',
+    gajibpjs: 'kar_gajibpjs',
     tkompetensi: 'kar_T_KOMPETENSI',
     tjabatan: 'kar_T_JABATAN',
     tlain: 'kar_T_LAIN',
@@ -66,6 +67,7 @@ export const getSettingGaji = async (req, res, next) => {
         k.kar_nama AS nama,
         COALESCE(j.jab_nama, '') AS jabatan,
         COALESCE(k.kar_GAPOK, 0) AS gapok,
+        COALESCE(k.kar_gajibpjs, 0) AS gajibpjs,
         COALESCE(k.kar_T_KOMPETENSI, 0) AS tkompetensi,
         COALESCE(k.kar_T_JABATAN, 0) AS tjabatan,
         COALESCE(k.kar_T_LAIN, 0) AS tlain,
@@ -93,7 +95,7 @@ export const getSettingGaji = async (req, res, next) => {
  * PUT /api/setting-gaji-bsm
  * Simpan massal (setara simpandata di Delphi: UPDATE tkaryawan per NIK,
  * 1 transaksi).
- * Body: { rows: [{ nik, gapok, tkompetensi, tjabatan, tlain, tbpjstk, tbpjs, tkoperasi, pph21 }] }
+ * Body: { rows: [{ nik, gapok, gajibpjs, tkompetensi, tjabatan, tlain, tbpjstk, tbpjs, tkoperasi, pph21 }] }
  */
 export const saveSettingGaji = async (req, res, next) => {
     const conn = await poolBsm.getConnectionWithRetry()
@@ -110,6 +112,7 @@ export const saveSettingGaji = async (req, res, next) => {
             .map((r) => ({
                 nik: String(r.nik).trim(),
                 gapok: num(r.gapok),
+                gajibpjs: num(r.gajibpjs),
                 tkompetensi: num(r.tkompetensi),
                 tjabatan: num(r.tjabatan),
                 tlain: num(r.tlain),
@@ -129,6 +132,7 @@ export const saveSettingGaji = async (req, res, next) => {
             await conn.query(
                 `UPDATE tkaryawan SET
           kar_GAPOK = ?,
+          kar_gajibpjs = ?,
           kar_T_KOMPETENSI = ?,
           kar_T_JABATAN = ?,
           kar_T_LAIN = ?,
@@ -137,7 +141,7 @@ export const saveSettingGaji = async (req, res, next) => {
           kar_t_koperasi = ?,
           kar_T_PPH21 = ?
         WHERE kar_Nik = ?`,
-                [r.gapok, r.tkompetensi, r.tjabatan, r.tlain, r.tbpjstk, r.tbpjs, r.tkoperasi, r.pph21, r.nik]
+                [r.gapok, r.gajibpjs, r.tkompetensi, r.tjabatan, r.tlain, r.tbpjstk, r.tbpjs, r.tkoperasi, r.pph21, r.nik]
             )
         }
 
