@@ -18,10 +18,10 @@ export function targetForUnit(kdUnit) {
 
 export const SYNC_SQL = `INSERT IGNORE INTO tkaryawan
   (kar_nik, kar_nama, kar_status_aktif, kar_tempatlahir, kar_kode_absensi,
-   kar_tgllahir, kar_jenkel, kar_agama, kar_notelp, kar_pab_kode,
+   kar_tgllahir, kar_jenkel, kar_agama, kar_notelp, kar_email, kar_pab_kode,
    kar_dep_kode, kar_jab_kode, kar_tgl_masuk, kar_sistem_gaji, kar_rekeningbank,
    date_create)
-  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 
 /**
  * Nama kolom rekening berbeda di kedua sisi:
@@ -96,6 +96,9 @@ export function mapVpsToTarget(row) {
     const notelp = row.kar_telp
         ? String(row.kar_telp).replace(/^'+/, '').trim() || null
         : null
+    const email = row.kar_email
+        ? String(row.kar_email).trim() || null
+        : null
     const pab =
         String(row.kar_kd_unit ?? '').trim() === '18'
             ? '0'
@@ -119,6 +122,7 @@ export function mapVpsToTarget(row) {
         jenkel,
         agama,
         notelp,
+        email,
         pab,
         dep,
         jab,
@@ -227,4 +231,21 @@ export async function syncRekeningToTarget(vpsRow) {
         [rekening, vpsRow.kar_nik]
     )
     return { skipped: false, target, affectedRows: res.affectedRows, rekening }
+}
+
+/**
+ * Propagasi email VPS -> 194.33 (kar_email -> kar_email).
+ * Dipakai setiap edit master karyawan (PUT /api/karyawan/:id).
+ */
+export async function syncEmailToTarget(vpsRow) {
+    const target = targetForUnit(vpsRow.kar_kd_unit)
+    if (!target) return { skipped: true, reason: 'no-target' }
+
+    const email = vpsRow.kar_email ? String(vpsRow.kar_email).trim() || null : null
+    const pool = target === 'hrd' ? poolBsm : poolEntri
+    const [res] = await pool.queryWithRetry(
+        `UPDATE tkaryawan SET kar_email = ? WHERE kar_Nik = ?`,
+        [email, vpsRow.kar_nik]
+    )
+    return { skipped: false, target, affectedRows: res.affectedRows, email }
 }

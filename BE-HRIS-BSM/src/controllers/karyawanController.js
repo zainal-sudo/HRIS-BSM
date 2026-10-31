@@ -2,7 +2,7 @@ import pool from '../config/database.js'
 import { success, error, paginated } from '../helpers/response.js'
 import { buildOrderBy, applyAllColumnFilters } from '../helpers/browse.js'
 import { masaKerjaSQL } from '../helpers/masaKerja.js'
-import { syncKaryawanToTarget, syncStatusToTarget, syncRekeningToTarget, syncJabatanDeptToTarget, targetForUnit } from '../helpers/syncKaryawan.js'
+import { syncKaryawanToTarget, syncStatusToTarget, syncRekeningToTarget, syncJabatanDeptToTarget, syncEmailToTarget, targetForUnit } from '../helpers/syncKaryawan.js'
 
 // Whitelist sort & filter kolom (alias frontend -> kolom SQL)
 // Kolom tanggal dibungkus DATE_FORMAT agar konsisten 'YYYY-MM-DD' di
@@ -403,6 +403,19 @@ export const updateKaryawan = async (req, res, next) => {
                 })
                 .catch((e) => {
                     console.error(`❌ Sync rekening gagal ${req.params.id}:`, e.message)
+                })
+        }
+
+        // 🔥 Propagasi email ke 194.33 (kar_email -> kar_email).
+        if (rows[0]) {
+            syncEmailToTarget(rows[0])
+                .then((r) => {
+                    if (!r.skipped) {
+                        console.log(`✅ Sync email ${req.params.id} -> ${r.target} = ${r.email} (affected=${r.affectedRows})`)
+                    }
+                })
+                .catch((e) => {
+                    console.error(`❌ Sync email gagal ${req.params.id}:`, e.message)
                 })
         }
 
