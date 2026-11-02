@@ -184,6 +184,8 @@ const generateHtml = (): string => {
         <div class="doc-nomor">No. : ${item?.Nomor || ""}</div>
 
         <p class="content">Yang bertanda tangan di bawah ini :</p>
+        <div class="field-row"><div class="field-label">Nama</div><div class="field-colon">:</div><div class="field-value">Heri Purnomo</div></div>
+        <div class="field-row"><div class="field-label">Jabatan</div><div class="field-colon">:</div><div class="field-value">Manager HRD</div></div>
         <p class="content">Dalam hal ini karena jabatannya untuk bertindak dan atas nama ${item?.unit2 || ""}, selanjutnya disebut sebagai <span class="bold">PIHAK PERTAMA (I)</span></p>
         <div class="field-row"><div class="field-label">Nama</div><div class="field-colon">:</div><div class="field-value">${item?.Nama || ""}</div></div>
         <div class="field-row"><div class="field-label">Tempat/Tgl. Lahir</div><div class="field-colon">:</div><div class="field-value">${ttl}</div></div>
@@ -393,6 +395,8 @@ const downloadDocx = async () => {
               children: [run(`No. : ${item?.Nomor || ""}`)],
             }),
             bodyPara("Yang bertanda tangan di bawah ini :", { indent: { firstLine: 567 } }),
+            fieldPara("Nama", "Heri Purnomo"),
+            fieldPara("Jabatan", "Manager HRD"),
             bodyPara(
               `Dalam hal ini karena jabatannya untuk bertindak dan atas nama ${item?.unit2 || ""}, selanjutnya disebut sebagai PIHAK PERTAMA (I)`
             ),
