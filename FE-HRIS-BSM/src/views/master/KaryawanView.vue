@@ -11,6 +11,8 @@ import BaseBrowse from "@/components/BaseBrowse.vue";
       { key: 'NIK', label: 'NIK' },
       { key: 'Nama', label: 'Nama' },
       { key: 'Email', label: 'Email' },
+      { key: 'Telp', label: 'No Telepon' },
+      { key: 'NoRekening', label: 'No Rekening' },
       { key: 'Jabatan', label: 'Jabatan' },
       { key: 'Departmen', label: 'Departemen' },
       { key: 'Unit', label: 'Unit' },
