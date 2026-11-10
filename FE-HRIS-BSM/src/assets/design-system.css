@@ -429,17 +429,22 @@
 
 /* ═══ SCROLLBAR ═══ */
 .ds-scroll::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 12px;
+  height: 12px;
 }
 .ds-scroll::-webkit-scrollbar-track {
   background: var(--ds-surface-inset);
 }
 .ds-scroll::-webkit-scrollbar-thumb {
   background: var(--ds-border);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 6px;
 }
 .ds-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--ds-text-muted);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

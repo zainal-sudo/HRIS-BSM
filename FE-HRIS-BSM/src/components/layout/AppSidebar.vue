@@ -156,10 +156,13 @@ function go(routePath?: string) {
   padding: 6px 0;
 }
 .sidebar-nav::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
 }
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 5px;
 }
 .menu-group-head {
   width: 100%;

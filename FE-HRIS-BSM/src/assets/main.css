@@ -31,17 +31,22 @@ body {
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 12px;
+  height: 12px;
 }
 ::-webkit-scrollbar-track {
   background: var(--ds-surface-inset, #E0E4EA);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--ds-border, #A0AAB8);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ds-text-muted, #8494A7);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* ── Vuetify overrides ── */

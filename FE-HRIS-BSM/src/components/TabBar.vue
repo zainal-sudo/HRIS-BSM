@@ -96,7 +96,13 @@ function refresh() {
   gap: 2px;
 }
 .tab-strip::-webkit-scrollbar {
-  height: 4px;
+  height: 10px;
+}
+.tab-strip::-webkit-scrollbar-thumb {
+  background: #c3cad4;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 5px;
 }
 .tab-btn {
   display: flex;
