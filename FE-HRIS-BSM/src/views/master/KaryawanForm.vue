@@ -37,6 +37,8 @@ const form = reactive({
   kar_jnskelamin: "",
   kar_tempatlahir: "",
   kar_tgllahir: null as string | null,
+  kar_status: "",
+  kar_anak: 0,
   kar_tgl_masuk: null as string | null,
   kar_kd_dept: null as string | null,
   kar_kd_jabat: null as string | null,
@@ -80,6 +82,8 @@ async function load() {
       kar_jnskelamin: d.kar_jnskelamin || "",
       kar_tempatlahir: d.kar_tempatlahir || "",
       kar_tgllahir: d.kar_tgllahir ? String(d.kar_tgllahir).slice(0, 10) : null,
+      kar_status: d.kar_status || "",
+      kar_anak: d.kar_anak == null ? 0 : Number(d.kar_anak),
       kar_tgl_masuk: d.kar_tgl_masuk ? String(d.kar_tgl_masuk).slice(0, 10) : null,
       kar_kd_dept: d.kar_kd_dept ? String(d.kar_kd_dept) : null,
       kar_kd_jabat: d.kar_kd_jabat ? String(d.kar_kd_jabat) : null,
@@ -146,6 +150,8 @@ async function save(): Promise<string> {
       kar_jnskelamin: form.kar_jnskelamin || null,
       kar_tempatlahir: form.kar_tempatlahir || null,
       kar_tgllahir: form.kar_tgllahir || null,
+      kar_status: form.kar_status || null,
+      kar_anak: Number(form.kar_anak) || 0,
       kar_tgl_masuk: form.kar_tgl_masuk || null,
       kar_kd_dept: form.kar_kd_dept || null,
       kar_kd_jabat: form.kar_kd_jabat || null,
@@ -226,6 +232,18 @@ onMounted(() => {
                 />
                 <FText v-model="form.kar_tempatlahir" label="Tempat Lahir" placeholder="Kota kelahiran" />
                 <FDate v-model="form.kar_tgllahir" label="Tanggal Lahir" />
+                <FSelect
+                  v-model="form.kar_status"
+                  label="Status Perkawinan"
+                  :options="[
+                    { label: 'Belum Menikah', value: 'Belum Menikah' },
+                    { label: 'Menikah', value: 'Menikah' },
+                    { label: 'Duda/Janda', value: 'Duda/Janda' },
+                  ]"
+                  placeholder="Pilih status"
+                  show-clear
+                />
+                <FNumber v-model="form.kar_anak" label="Jumlah Anak" placeholder="0" />
                 <FText v-model="form.kar_namaibu" label="Nama Ibu Kandung" placeholder="Nama ibu kandung" />
                 <FText v-model="form.kar_telp" label="Telepon" placeholder="08xxx" />
                 <FText v-model="form.kar_email" label="Email" placeholder="email@example.com" />
