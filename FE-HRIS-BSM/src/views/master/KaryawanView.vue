@@ -9,6 +9,7 @@ import BaseBrowse from "@/components/BaseBrowse.vue";
     endpoint="/karyawan"
     :columns="[
       { key: 'NIK', label: 'NIK' },
+      { key: 'NIK_KTP', label: 'NIK KTP' },
       { key: 'Nama', label: 'Nama' },
       { key: 'Email', label: 'Email' },
       { key: 'Telp', label: 'No Telepon' },

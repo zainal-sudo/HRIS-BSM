@@ -17,7 +17,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;
   (e: "update:displayName", v: string): void;
-  (e: "select", row: { NIK: string; Nama: string }): void;
+  (e: "select", row: { NIK: string; NIK_KTP?: string; Nama: string }): void;
 }>();
 
 const toast = useToast();
@@ -25,13 +25,13 @@ const toast = useToast();
 const dialog = ref(false);
 const loading = ref(false);
 const search = ref("");
-const rows = ref<{ NIK: string; Nama: string }[]>([]);
+const rows = ref<{ NIK: string; NIK_KTP?: string; Nama: string }[]>([]);
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase();
   if (!q) return rows.value;
   return rows.value.filter(
-    (r) => r.NIK.toLowerCase().includes(q) || r.Nama.toLowerCase().includes(q)
+    (r) => r.NIK.toLowerCase().includes(q) || (r.NIK_KTP && r.NIK_KTP.toLowerCase().includes(q)) || r.Nama.toLowerCase().includes(q)
   );
 });
 
@@ -51,7 +51,7 @@ async function open() {
   }
 }
 
-function pick(row: { NIK: string; Nama: string }) {
+function pick(row: { NIK: string; NIK_KTP?: string; Nama: string }) {
   emit("update:modelValue", row.NIK);
   emit("update:displayName", row.Nama);
   emit("select", row);
@@ -90,7 +90,7 @@ function clear() {
           <input
             v-model="search"
             type="text"
-            placeholder="Cari berdasarkan NIK atau Nama..."
+            placeholder="Cari berdasarkan NIK, NIK KTP, atau Nama..."
             autofocus
           />
         </div>
@@ -106,6 +106,7 @@ function clear() {
               @click="pick(r)"
             >
               <span class="lk-nik">{{ r.NIK }}</span>
+              <span v-if="r.NIK_KTP" class="lk-nik-ktp">{{ r.NIK_KTP }}</span>
               <span class="lk-nama">{{ r.Nama }}</span>
             </button>
           </div>
@@ -217,6 +218,13 @@ function clear() {
   font-weight: 700;
   color: var(--ds-primary, #3b5998);
   background: #e8edf5;
+  padding: 2px 8px;
+}
+.lk-nik-ktp {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0d9488;
+  background: #f0fdf4;
   padding: 2px 8px;
 }
 .lk-nama {

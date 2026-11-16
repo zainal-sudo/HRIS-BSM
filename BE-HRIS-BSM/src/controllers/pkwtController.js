@@ -307,7 +307,7 @@ export const getRiwayatPkwt = async (req, res, next) => {
 
 export const lookupKaryawanAktif = async (req, res, next) => {
     try {
-        let query = 'SELECT kar_nik AS NIK, kar_nama AS Nama FROM tkaryawan WHERE kar_status_aktif = 1'
+        let query = 'SELECT kar_nik AS NIK, kar_nik_ktp AS NIK_KTP, kar_nama AS Nama FROM tkaryawan WHERE kar_status_aktif = 1'
         const params = []
 
         if (req.user.user.toLowerCase() !== 'pusat') {
