@@ -70,7 +70,7 @@ export const getAllIzin = async (req, res, next) => {
         c.nm_jabat AS Jabatan,
         d.nm_dept AS Departmen,
         e.nm_unit AS Unit,
-        a.tanggal AS Tanggal,
+        DATE_FORMAT(a.tanggal, '%Y-%m-%d') AS Tanggal,
         a.alasan AS Alasan,
         a.keterangan AS Keterangan,
         a.ij_foto AS foto
@@ -165,7 +165,8 @@ export const getMaxKode = async (req, res, next) => {
 export const getIzinById = async (req, res, next) => {
     try {
         const [rows] = await pool.query(
-            'SELECT * FROM tijin WHERE ij_nomor = ?',
+            `SELECT ij_nomor, kar_nik, DATE_FORMAT(tanggal, '%Y-%m-%d') AS tanggal, alasan, keterangan, ij_foto, ij_shift
+             FROM tijin WHERE ij_nomor = ?`,
             [req.params.id]
         )
 

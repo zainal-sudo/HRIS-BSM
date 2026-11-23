@@ -53,13 +53,13 @@ export const getAllPkwt = async (req, res, next) => {
         }
 
         const baseQuery = `
-      SELECT a.pkwt_nomor AS Nomor, a.pkwt_tanggal AS Tanggal, 
+      SELECT a.pkwt_nomor AS Nomor, DATE_FORMAT(a.pkwt_tanggal, '%Y-%m-%d') AS Tanggal, 
          b.kar_nik AS NIK, b.kar_nama AS Nama, 
          c.nm_jabat AS Jabatan, d.nm_dept AS Departmen, e.nm_unit AS Unit,
          a.pkwt_kar_status2 AS StatusPKWT, 
-         a.pkwt_tgl_mulai2 AS TglMulai, a.pkwt_tgl_akhir2 AS TglAkhir,
+         DATE_FORMAT(a.pkwt_tgl_mulai2, '%Y-%m-%d') AS TglMulai, DATE_FORMAT(a.pkwt_tgl_akhir2, '%Y-%m-%d') AS TglAkhir,
          b.kar_tempatlahir AS TempatLahir,
-         b.kar_tgllahir AS TglLahir,
+         DATE_FORMAT(b.kar_tgllahir, '%Y-%m-%d') AS TglLahir,
          b.kar_alamat AS Alamat, e.nm_unit2 AS unit2
       FROM tpkwt a
       LEFT JOIN tkaryawan b ON a.pkwt_kar_nik = b.kar_nik

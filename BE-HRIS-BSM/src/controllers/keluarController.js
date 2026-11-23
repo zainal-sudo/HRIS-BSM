@@ -83,7 +83,7 @@ export const getAllKeluar = async (req, res, next) => {
         const baseQuery = `
       SELECT 
         a.kl_nomor AS Nomor,
-        a.kl_tanggal AS Tanggal,
+        DATE_FORMAT(a.kl_tanggal, '%Y-%m-%d') AS Tanggal,
         a.kl_nik AS NIK,
         b.kar_nama AS Nama,
         c.nm_jabat AS Jabatan,
