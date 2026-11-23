@@ -43,7 +43,7 @@ export const getLaporanAbsensi = async (req, res, next) => {
         FROM dates d
         CROSS JOIN (SELECT DISTINCT kar_nik FROM tabsensitampung WHERE kar_nik <> '') emp
         LEFT JOIN tkaryawan x ON x.kar_nik = emp.kar_nik
-        LEFT JOIN tabsensitampung e ON DATE(e.tanggal) = d.dt AND e.kar_nik = emp.kar_nik
+        LEFT JOIN tabsensitampung e ON COALESCE(e.tanggal_kerja, DATE(e.tanggal)) = d.dt AND e.kar_nik = emp.kar_nik
         GROUP BY d.dt, emp.kar_nik
       ),
       status_dasar AS (

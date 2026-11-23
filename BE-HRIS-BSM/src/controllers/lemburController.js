@@ -82,7 +82,7 @@ export const getAllLembur = async (req, res, next) => {
       LEFT JOIN tjabatan c ON c.kd_jabat = b.kar_kd_jabat
       LEFT JOIN tdept d ON d.kd_dept = b.kar_kd_dept
       LEFT JOIN tunit e ON e.kd_unit = b.kar_kd_unit
-      LEFT JOIN tabsensitampung f ON (f.kar_nik = a.lem_kar_nik AND DATE(f.tanggal) = a.lem_tanggal)
+      LEFT JOIN tabsensitampung f ON (f.kar_nik = a.lem_kar_nik AND COALESCE(f.tanggal_kerja, DATE(f.tanggal)) = a.lem_tanggal)
     `
 
         // Filter per kolom (?filter_Nama=teks, ?filterSet_Nama=a&filterSet_Nama=b) + sorting (?sort_by=, ?sort_dir=)

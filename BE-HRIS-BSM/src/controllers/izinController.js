@@ -232,7 +232,7 @@ export const getDetailKaryawan = async (req, res, next) => {
         MIN(CASE WHEN status_absen = 1 THEN TIME(tanggal) END) AS Jam_in,
         MAX(CASE WHEN status_absen IN (1,2) THEN TIME(tanggal) END) AS Jam_out
       FROM tabsensitampung
-      WHERE kar_nik = ? AND DATE(tanggal) = ?
+      WHERE kar_nik = ? AND COALESCE(tanggal_kerja, DATE(tanggal)) = ?
     `
         const [absenRows] = await pool.query(absenQuery, [nik, tanggal])
 
