@@ -131,9 +131,33 @@ const filteredRows = computed(() => {
   );
 });
 
+/** Tahan urutan & filter saat sel sedang diedit agar input tidak berpindah/menghilang. */
+const editing = ref(false);
+let editingTimer: ReturnType<typeof setTimeout> | undefined;
+function mulaiEdit() {
+  if (editingTimer) {
+    clearTimeout(editingTimer);
+    editingTimer = undefined;
+  }
+  editing.value = true;
+}
+function selesaiEdit() {
+  if (editingTimer) clearTimeout(editingTimer);
+  editingTimer = setTimeout(() => {
+    editing.value = false;
+  }, 250);
+}
+let frozenRows: RowGajiN3[] | null = null;
+
 const sortedRows = computed(() => {
-  if (!sortBy.value || !sortDir.value) return filteredRows.value;
-  return sortByKey(filteredRows.value, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGajiN3]);
+  if (editing.value && frozenRows) return frozenRows;
+  const base = filteredRows.value;
+  const hasil =
+    !sortBy.value || !sortDir.value
+      ? base
+      : sortByKey(base, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGajiN3]);
+  frozenRows = hasil;
+  return hasil;
 });
 
 const konfirmasiJumlah = ref(0);
@@ -907,7 +931,7 @@ onMounted(() => {
 
     <div class="table-card">
       <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table" @focusin="mulaiEdit" @focusout="selesaiEdit">
           <thead>
             <tr>
               <th class="c frozen frozen-1" style="width: 34px">No</th>
@@ -959,22 +983,22 @@ onMounted(() => {
               <td class="r">{{ fmt(r.potongan) }}</td>
               <td>{{ r.rekening || "-" }}</td>
               <td class="r strong">{{ fmt(r.total) }}</td>
-              <td class="c"><CurrencyInput v-model="r.tjabatan" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.tkompetensi" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.poin" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.bpjs" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.bpjstk" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.tjabatan" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.tkompetensi" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.poin" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.bpjs" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.bpjstk" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.koperasi" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.tidakmasuk" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.terlambat" class="cell-input" /></td>
               <td class="r"><span class="cell-span">{{ fmt(r.potTerlambat) }}</span></td>
-              <td class="c"><CurrencyInput v-model="r.potonghari" class="cell-input" @update:model-value="recalc(r)" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.potonghari" class="cell-input" @update:model-value="recalc(r)" /></td>
               <td class="r"><span class="cell-span">{{ fmt(r.potHarikerja) }}</span></td>
-              <td class="c"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
-              <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
-              <td class="c"><CurrencyInput v-model="r.simpananpokok" class="cell-input" /></td>
-              <td class="c"><CurrencyInput v-model="r.sisaangsuran" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.angsuran" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.pph21" class="cell-input" /></td>
+              <td class="c editable"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" title="Koreksi gaji bulan lalu — penambah gaji, boleh minus" @input="recalc(r)" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.simpananpokok" class="cell-input" /></td>
+              <td class="c editable"><CurrencyInput v-model="r.sisaangsuran" class="cell-input" /></td>
               <td class="c">
                 <button class="row-btn" title="Cetak slip gaji" @click="cetakSlip([slipDari(r)])">
                   <MsIcon name="print" :size="14" />
@@ -1415,12 +1439,17 @@ th.sorted .th-sort {
   color: #8a94a3;
   padding: 24px !important;
 }
+/* Kolom yang bisa diinput manual: latar kuning */
+.data-table td.editable,
+.data-table td:has(.cell-input) {
+  background-color: #fff7cc;
+}
 .cell-input {
   width: 100%;
   height: 24px;
   padding: 0 4px;
   border: 1px solid transparent;
-  background: transparent;
+  background: #fff7cc;
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 11px;
   color: var(--ds-on-surface, #1b2d4a);
@@ -1429,11 +1458,11 @@ th.sorted .th-sort {
 }
 .cell-input:hover {
   border-color: #b9c3d2;
-  background: #fff;
+  background: #fff1a8;
 }
 .cell-input:focus {
   border-color: var(--ds-primary, #3b5998);
-  background: #fff;
+  background: #fff1a8;
 }
 .row-btn {
   width: 24px;

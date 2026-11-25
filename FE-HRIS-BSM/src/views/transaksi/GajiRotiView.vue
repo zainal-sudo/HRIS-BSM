@@ -94,9 +94,33 @@ function frozenCls(key: string) {
   return "";
 }
 
+/** Tahan urutan & filter saat sel sedang diedit agar input tidak berpindah/menghilang. */
+const editing = ref(false);
+let editingTimer: ReturnType<typeof setTimeout> | undefined;
+function mulaiEdit() {
+  if (editingTimer) {
+    clearTimeout(editingTimer);
+    editingTimer = undefined;
+  }
+  editing.value = true;
+}
+function selesaiEdit() {
+  if (editingTimer) clearTimeout(editingTimer);
+  editingTimer = setTimeout(() => {
+    editing.value = false;
+  }, 250);
+}
+let frozenRows: RowGaji[] | null = null;
+
 const sortedRows = computed(() => {
-  if (!sortBy.value || !sortDir.value) return filteredRows.value;
-  return sortByKey(filteredRows.value, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGaji]);
+  if (editing.value && frozenRows) return frozenRows;
+  const base = filteredRows.value;
+  const hasil =
+    !sortBy.value || !sortDir.value
+      ? base
+      : sortByKey(base, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGaji]);
+  frozenRows = hasil;
+  return hasil;
 });
 
 /** Pencarian lokal: NIK, nama, jabatan, unit, rekening */
@@ -801,7 +825,7 @@ onMounted(() => {
 
     <div class="table-card">
       <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table" @focusin="mulaiEdit" @focusout="selesaiEdit">
           <thead>
             <tr>
               <th class="c frozen frozen-1" style="width: 34px">No</th>
@@ -863,8 +887,8 @@ onMounted(() => {
               <td class="r">{{ fmt(r.gapok) }}</td>
               <td class="r">{{ fmt(r.lemburperjam) }}</td>
               <td class="r">{{ fmt(r.lembur) }}</td>
-              <td class="c"><input v-model.number="r.punishment" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
-              <td class="c"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" @input="recalc(r)" /></td>
+              <td class="c editable"><input v-model.number="r.punishment" class="cell-input" type="number" min="0" step="1000" @input="recalc(r)" /></td>
+              <td class="c editable"><input v-model.number="r.koreksi" class="cell-input" type="number" step="1000" @input="recalc(r)" /></td>
               <td>{{ r.rekening || "-" }}</td>
               <td class="r strong">{{ fmt(r.total) }}</td>
               <td class="c">
@@ -1325,12 +1349,17 @@ th.sorted .th-sort {
   color: #8a94a3;
   padding: 24px !important;
 }
+/* Kolom yang bisa diinput manual: latar kuning */
+.data-table td.editable,
+.data-table td:has(.cell-input) {
+  background-color: #fff7cc;
+}
 .cell-input {
   width: 100%;
   height: 24px;
   padding: 0 4px;
   border: 1px solid transparent;
-  background: transparent;
+  background: #fff7cc;
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 11px;
   color: var(--ds-on-surface, #1b2d4a);
@@ -1342,11 +1371,11 @@ th.sorted .th-sort {
 }
 .cell-input:hover {
   border-color: #b9c3d2;
-  background: #fff;
+  background: #fff1a8;
 }
 .cell-input:focus {
   border-color: var(--ds-primary, #3b5998);
-  background: #fff;
+  background: #fff1a8;
 }
 .chip {
   display: inline-block;

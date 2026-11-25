@@ -183,11 +183,33 @@ const filteredRows = computed(() => {
   );
 });
 
+/** Tahan urutan & filter saat sel sedang diedit agar input tidak berpindah/menghilang. */
+const editing = ref(false);
+let editingTimer: ReturnType<typeof setTimeout> | undefined;
+function mulaiEdit() {
+  if (editingTimer) {
+    clearTimeout(editingTimer);
+    editingTimer = undefined;
+  }
+  editing.value = true;
+}
+function selesaiEdit() {
+  if (editingTimer) clearTimeout(editingTimer);
+  editingTimer = setTimeout(() => {
+    editing.value = false;
+  }, 250);
+}
+let frozenRows: RowGajiPkrt[] | null = null;
+
 const sortedRows = computed(() => {
-  if (!sortBy.value || !sortDir.value) return filteredRows.value;
-  return sortByKey(filteredRows.value, sortBy.value, sortDir.value, (r, k) =>
-    r[k as keyof RowGajiPkrt]
-  );
+  if (editing.value && frozenRows) return frozenRows;
+  const base = filteredRows.value;
+  const hasil =
+    !sortBy.value || !sortDir.value
+      ? base
+      : sortByKey(base, sortBy.value, sortDir.value, (r, k) => r[k as keyof RowGajiPkrt]);
+  frozenRows = hasil;
+  return hasil;
 });
 
 const num = (v: unknown): number => {
@@ -929,7 +951,7 @@ onMounted(() => {
 
     <div class="table-card">
       <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table" @focusin="mulaiEdit" @focusout="selesaiEdit">
           <thead>
             <tr>
               <th class="c frozen frozen-1" style="width: 34px">No</th>
@@ -993,28 +1015,28 @@ onMounted(() => {
               <td class="r">{{ fmt(r.nominalpotgaji) }}</td>
               <td class="r">{{ fmt(r.potongan) }}</td>
               <td class="r strong">{{ fmt(r.gajibulat) }}</td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.poin"
                   class="cell-input"
                   @update:model-value="(v) => isiManual(r, 'poin', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.hariinsentif"
                   class="cell-input"
                   @update:model-value="(v) => isiManual(r, 'hariinsentif', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.haripotong"
                   class="cell-input"
                   @update:model-value="(v) => isiManual(r, 'haripotong', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.pph21"
                   class="cell-input"
@@ -1022,7 +1044,7 @@ onMounted(() => {
                   @update:model-value="(v) => isiManual(r, 'pph21', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <input
                   v-model.number="r.koreksi"
                   class="cell-input"
@@ -1032,7 +1054,7 @@ onMounted(() => {
                   @input="isiManual(r, 'koreksi', r.koreksi)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.angsuran"
                   class="cell-input"
@@ -1040,7 +1062,7 @@ onMounted(() => {
                   @update:model-value="(v) => isiManual(r, 'angsuran', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.simpananpokok"
                   class="cell-input"
@@ -1048,7 +1070,7 @@ onMounted(() => {
                   @update:model-value="(v) => isiManual(r, 'simpananpokok', v)"
                 />
               </td>
-              <td class="c">
+              <td class="c editable">
                 <CurrencyInput
                   :model-value="r.sisaangsuran"
                   class="cell-input"
@@ -1538,12 +1560,17 @@ th.sorted .th-sort {
   color: #8a94a3;
   padding: 24px !important;
 }
+/* Kolom yang bisa diinput manual: latar kuning */
+.data-table td.editable,
+.data-table td:has(.cell-input) {
+  background-color: #fff7cc;
+}
 .cell-input {
   width: 100%;
   height: 24px;
   padding: 0 4px;
   border: 1px solid transparent;
-  background: transparent;
+  background: #fff7cc;
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 11px;
   color: var(--ds-on-surface, #1b2d4a);
@@ -1552,11 +1579,11 @@ th.sorted .th-sort {
 }
 .cell-input:hover {
   border-color: #b9c3d2;
-  background: #fff;
+  background: #fff1a8;
 }
 .cell-input:focus {
   border-color: var(--ds-primary, #3b5998);
-  background: #fff;
+  background: #fff1a8;
 }
 .row-btn {
   width: 24px;
