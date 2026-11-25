@@ -69,12 +69,25 @@ export function hitungGajiBsm(r) {
 }
 
 /**
- * GET /api/gaji-bsm/karyawan
+ * GET /api/gaji-bsm/karyawan?end_date=
  * Master karyawan aktif (sistem Harian/Bulanan, gapok > 0) -> dasar grid.
- * Setara InsertNilai di Delphi.
+ * Setara InsertNilai di Delphi. end_date (opsional) membatasi karyawan yang
+ * tgl masuk-nya sudah lewat tanggal akhir cutoff periode.
  */
 export const getKaryawanBsm = async (req, res, next) => {
     try {
+        // Batasi ke karyawan yang sudah masuk pada periode gaji (cutoff).
+        const endDate = String(req.query.end_date || '').trim()
+        const params = []
+        let filterMasuk = ''
+        if (endDate) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+                return error(res, 'Format end_date harus YYYY-MM-DD', 400)
+            }
+            filterMasuk = 'AND (k.kar_tgl_masuk IS NULL OR k.kar_tgl_masuk <= ?)'
+            params.push(endDate)
+        }
+
         const [rows] = await poolBsm.queryWithRetry(
             `SELECT
         k.kar_Nik AS nik,
@@ -102,7 +115,9 @@ export const getKaryawanBsm = async (req, res, next) => {
         AND k.kar_sistem_gaji IN ('Harian', 'Bulanan')
         AND k.kar_GAPOK > 0
         AND ${FILTER_UNIT_BSM}
-      ORDER BY k.kar_Nik`
+        ${filterMasuk}
+      ORDER BY k.kar_Nik`,
+            params
         )
 
         success(res, rows, `${rows.length} karyawan aktif unit PT Bumi Sarana Maju + BSM Olshop dimuat`)

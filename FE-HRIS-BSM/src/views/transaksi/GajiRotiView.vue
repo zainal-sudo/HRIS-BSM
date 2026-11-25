@@ -227,7 +227,9 @@ function kosongkanGrid() {
 async function muatKaryawan() {
   loading.value = true;
   try {
-    const { data } = await api.get("/gaji-roti/karyawan");
+    const { data } = await api.get("/gaji-roti/karyawan", {
+      params: { end_date: filters.end_date },
+    });
     const list: any[] = data.data || [];
     rows.value = list.map((d) => {
       const r: RowGaji = {

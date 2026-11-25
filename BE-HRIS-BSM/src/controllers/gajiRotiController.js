@@ -53,11 +53,27 @@ function hitungTotal({ jabatan, gapok, lembur, gajiperhari, masuk, punishment, k
 }
 
 /**
- * GET /api/gaji-roti/karyawan
+ * GET /api/gaji-roti/karyawan?end_date=
  * Daftar karyawan aktif unit RotiQ -> dasar grid proses gaji.
+ * end_date (opsional, YYYY-MM-DD) = tanggal akhir cutoff periode; karyawan
+ * yang tgl masuk-nya melewati tanggal ini tidak ikut dimuat.
  */
 export const getKaryawanRoti = async (req, res, next) => {
     try {
+        // Batasi ke karyawan yang sudah masuk pada periode gaji (cutoff).
+        // Karyawan baru yang tgl masuk-nya setelah tanggal akhir cutoff
+        // belum boleh ikut proses gaji periode ini.
+        const endDate = String(req.query.end_date || '').trim()
+        const params = []
+        let filterMasuk = ''
+        if (endDate) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+                return error(res, 'Format end_date harus YYYY-MM-DD', 400)
+            }
+            filterMasuk = 'AND (k.kar_tgl_masuk IS NULL OR k.kar_tgl_masuk <= ?)'
+            params.push(endDate)
+        }
+
         const [rows] = await pool.query(
             `SELECT
         k.kar_nik AS nik,
@@ -74,7 +90,9 @@ export const getKaryawanRoti = async (req, res, next) => {
       LEFT JOIN tunit u ON u.kd_unit = k.kar_kd_unit
       WHERE k.kar_status_aktif = 1
         AND u.nm_unit LIKE 'RotiQ%'
-      ORDER BY k.kar_nik`
+        ${filterMasuk}
+      ORDER BY k.kar_nik`,
+            params
         )
 
         success(res, rows, `${rows.length} karyawan aktif unit RotiQ dimuat`)

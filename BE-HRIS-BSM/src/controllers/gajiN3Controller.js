@@ -69,12 +69,25 @@ export function hitungGajiN3(r) {
 }
 
 /**
- * GET /api/gaji-n3/karyawan
+ * GET /api/gaji-n3/karyawan?end_date=
  * Master karyawan aktif unit 6 (sistem Harian/Bulanan, gapok > 0).
- * Setara InsertNilai di Delphi N3.
+ * Setara InsertNilai di Delphi N3. end_date (opsional) membatasi karyawan
+ * yang tgl masuk-nya sudah lewat tanggal akhir cutoff periode.
  */
 export const getKaryawanN3 = async (req, res, next) => {
     try {
+        // Batasi ke karyawan yang sudah masuk pada periode gaji (cutoff).
+        const endDate = String(req.query.end_date || '').trim()
+        const params = []
+        let filterMasuk = ''
+        if (endDate) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+                return error(res, 'Format end_date harus YYYY-MM-DD', 400)
+            }
+            filterMasuk = 'AND (k.kar_tgl_masuk IS NULL OR k.kar_tgl_masuk <= ?)'
+            params.push(endDate)
+        }
+
         const [rows] = await poolEntri.queryWithRetry(
             `SELECT
         k.kar_Nik AS nik,
@@ -101,7 +114,9 @@ export const getKaryawanN3 = async (req, res, next) => {
         AND k.kar_sistem_gaji IN ('Harian', 'Bulanan')
         AND k.kar_GAPOK > 0
         AND ${FILTER_UNIT_N3}
-      ORDER BY k.kar_Nik`
+        ${filterMasuk}
+      ORDER BY k.kar_Nik`,
+            params
         )
 
         success(res, rows, `${rows.length} karyawan aktif PT Entri Jaya Makmur dimuat`)

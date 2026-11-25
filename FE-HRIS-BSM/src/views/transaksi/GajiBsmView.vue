@@ -308,7 +308,9 @@ function barisDariMaster(d: any): RowGajiBsm {
 async function muatKaryawan() {
   loading.value = true;
   try {
-    const { data } = await api.get("/gaji-bsm/karyawan");
+    const { data } = await api.get("/gaji-bsm/karyawan", {
+      params: { end_date: filters.end_date },
+    });
     const list: any[] = data.data || [];
     rows.value = list.map(barisDariMaster);
     adaDataTersimpan.value = null;

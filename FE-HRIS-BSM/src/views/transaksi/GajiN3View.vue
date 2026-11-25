@@ -291,7 +291,9 @@ function barisDariMaster(d: any): RowGajiN3 {
 async function muatKaryawan() {
   loading.value = true;
   try {
-    const { data } = await api.get("/gaji-n3/karyawan");
+    const { data } = await api.get("/gaji-n3/karyawan", {
+      params: { end_date: filters.end_date },
+    });
     const list: any[] = data.data || [];
     rows.value = list.map(barisDariMaster);
     adaDataTersimpan.value = null;

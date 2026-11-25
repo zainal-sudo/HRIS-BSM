@@ -90,13 +90,27 @@ function cekPeriode(periode, tahun, res) {
 }
 
 /**
- * GET /api/gaji-pkrt/karyawan
+ * GET /api/gaji-pkrt/karyawan?end_date=
  * Master karyawan aktif PKRT -> dasar grid proses gaji.
  * Nilai turunan (THP, lembur, potongan, gaji) ikut dikirim supaya grid
  * langsung menampilkan angka, tetap dihitung ulang server saat simpan.
+ * end_date (opsional) membatasi karyawan yang tgl masuk-nya sudah lewat
+ * tanggal akhir cutoff periode.
  */
 export const getKaryawanPkrt = async (req, res, next) => {
     try {
+        // Batasi ke karyawan yang sudah masuk pada periode gaji (cutoff).
+        const endDate = String(req.query.end_date || '').trim()
+        const params = []
+        let filterMasuk = ''
+        if (endDate) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+                return error(res, 'Format end_date harus YYYY-MM-DD', 400)
+            }
+            filterMasuk = 'AND (k.kar_tgl_masuk IS NULL OR k.kar_tgl_masuk <= ?)'
+            params.push(endDate)
+        }
+
         const [rows] = await pool.query(
             `SELECT ${SELECT_KARYAWAN}
        FROM tkaryawan k
@@ -105,7 +119,9 @@ export const getKaryawanPkrt = async (req, res, next) => {
       WHERE k.kar_status_aktif = 1
         AND ${FILTER_UNIT_PKRT}
         AND ${FILTER_JABATAN_GAJI_PKRT}
-      ORDER BY k.kar_nama`
+        ${filterMasuk}
+      ORDER BY k.kar_nama`,
+            params
         )
 
         const data = rows.map((r) => lengkapkan({ ...r, poin: 0, hariinsentif: 0, haripotong: 0 }))

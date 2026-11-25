@@ -355,7 +355,9 @@ function barisDari(d: any): RowGajiPkrt {
 async function muatKaryawan() {
   loading.value = true;
   try {
-    const { data } = await api.get("/gaji-pkrt/karyawan");
+    const { data } = await api.get("/gaji-pkrt/karyawan", {
+      params: { end_date: filters.end_date },
+    });
     const list: any[] = data.data || [];
     rows.value = list.map(barisDari);
     adaDataTersimpan.value = null;
