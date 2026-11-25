@@ -10,13 +10,12 @@ export const verifyToken = (req, res, next) => {
     const token = authHeader.split(' ')[1]
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        // ignoreExpiration: token lama yang sudah punya exp tetap diterima,
+        // karena masa berlaku token tidak dipakai lagi.
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true })
         req.user = decoded  // { user, kd_unit, kar_nik, nm_unit }
         next()
     } catch (err) {
-        if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({ success: false, message: 'Token expired' })
-        }
         return res.status(401).json({ success: false, message: 'Token tidak valid' })
     }
 }

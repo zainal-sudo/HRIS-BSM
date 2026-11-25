@@ -37,13 +37,9 @@ export const login = async (req, res, next) => {
             nm_unit: user.nm_unit || 'Pusat'
         }
 
-        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRES_IN || '1h'
-        })
-
-        const refreshToken = jwt.sign(tokenPayload, process.env.JWT_REFRESH_SECRET, {
-            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
-        })
+        // Token sengaja dibuat tanpa masa berlaku (tanpa expiresIn).
+        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET)
+        const refreshToken = jwt.sign(tokenPayload, process.env.JWT_REFRESH_SECRET)
 
         success(res, {
             user: {
@@ -55,7 +51,7 @@ export const login = async (req, res, next) => {
             },
             token,
             refresh_token: refreshToken,
-            token_expiry: process.env.JWT_EXPIRES_IN || '1h'
+            token_expiry: 'never'
         }, 'Login berhasil')
 
     } catch (err) {
@@ -71,7 +67,7 @@ export const refresh = async (req, res, next) => {
             return error(res, 'Refresh token diperlukan', 401)
         }
 
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, { ignoreExpiration: true })
 
         const tokenPayload = {
             user: decoded.user,
@@ -80,9 +76,7 @@ export const refresh = async (req, res, next) => {
             nm_unit: decoded.nm_unit
         }
 
-        const newToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRES_IN || '1h'
-        })
+        const newToken = jwt.sign(tokenPayload, process.env.JWT_SECRET)
 
         success(res, { token: newToken }, 'Token refreshed')
 
