@@ -18,8 +18,9 @@ import {
  * Alur (mengikuti modul gaji BSM/N3/Roti yang sudah ada):
  *   1. Muat Karyawan -> master karyawan aktif PKRT + setting gaji dari
  *      tkaryawan (lihat settingGajiPkrtController)
- *   2. Tarik Absensi -> kolom "Jml Hari Dipot" dari procedure
- *      rekap_absensiv3 di server utama (Potong_Gaji)
+ *   2. Tarik Absensi -> kolom "Jml Hari Dipot" (Potong_Gaji) dan
+ *      "Poin Lembur" (TotalPoinLembur) dari procedure rekap_absensiv3
+ *      di server utama
  *   3. Muat Tersimpan -> data yang sudah ada di tgajibulananpkrt
  *   4. Simpan -> hapus periode tsb lalu insert ulang (1 transaksi)
  *
@@ -137,8 +138,8 @@ export const getKaryawanPkrt = async (req, res, next) => {
  * GET /api/gaji-pkrt/absensi?start_date=&end_date=
  * Tarik rekap absensi dari procedure rekap_absensiv3 (server utama),
  * disaring hanya NIK unit PKRT. Yang dipakai untuk perhitungan gaji
- * PKRT hanya kolom "Jml Hari Dipot" (= Potong_Gaji); sisa kolom hanya
- * ditampilkan sebagai informasi.
+ * PKRT adalah kolom "Jml Hari Dipot" (= Potong_Gaji) dan "Poin Lembur"
+ * (= TotalPoinLembur); sisa kolom hanya ditampilkan sebagai informasi.
  */
 export const getAbsensiPkrt = async (req, res, next) => {
     try {
@@ -181,6 +182,7 @@ const [nikRows] = await pool.query(
             terlambat: num(r.Terlambat),
             tidakmasuk: num(r.CutiTahunan) + num(r.Sakit) + num(r.CutiKhusus),
             potonghari: num(r.Potong_Gaji),
+            poin: num(r.TotalPoinLembur),
             keterangan: r.Keterangan || '',
         }))
 

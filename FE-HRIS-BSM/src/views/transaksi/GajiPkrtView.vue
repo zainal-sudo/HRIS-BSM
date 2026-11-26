@@ -32,10 +32,11 @@ import {
  *   Gaji           = THP + Lembur + Insentif - Total Potongan + Koreksi
  *                    Bln Lalu (dibulatkan; koreksi boleh minus)
  *
- * Kolom "Hari Potong" ditarik dari Rekap Absensi (field "Potong_Gaji"),
- * sedangkan Poin, Hari Insentif, PPh21, Cicilan, Angsuran & Simpanan Pokok
- * diinput manual di grid (nilai awal PPh21 & Cicilan tetap diambil dari
- * master Setting Gaji PKRT, lalu boleh disesuaikan untuk periode ini).
+ * Kolom "Hari Potong" & "Poin" ditarik dari Rekap Absensi (field
+ * "Potong_Gaji" dan "TotalPoinLembur"), sedangkan Hari Insentif, PPh21,
+ * Cicilan, Angsuran & Simpanan Pokok diinput manual di grid (nilai awal
+ * PPh21 & Cicilan tetap diambil dari master Setting Gaji PKRT, lalu boleh
+ * disesuaikan untuk periode ini).
  * Simpanan Pokok hanya informasi koperasi (tampil di slip), mengikuti
  * pola Proses Gaji N3. Sisanya mengikuti master.
  */
@@ -391,8 +392,9 @@ async function muatKaryawan() {
   }
 }
 
-/** 2. Tarik "Hari Potong" dari rekap absensi (kolom "Potong Gaji").
- *  Poin, Hari Insentif, PPh21 & Cicilan tidak ada di rekap absensi, jadi
+/** 2. Tarik "Poin" & "Hari Potong" dari rekap absensi (kolom "Poin Lembur"
+ *  & "Potong Gaji").
+ *  Hari Insentif, PPh21 & Cicilan tidak ada di rekap absensi, jadi
  *  dibiarkan sesuai isian manual di grid (tidak ditimpa menjadi 0). */
 async function tarikAbsensi() {
   if (rows.value.length === 0) {
@@ -420,6 +422,7 @@ async function tarikAbsensi() {
     for (const a of list) {
       const r = peta.get(String(a.nik).trim());
       if (!r) continue;
+      r.poin = num(a.poin);
       r.haripotong = num(a.potonghari);
       recalc(r);
       cocok += 1;
@@ -430,9 +433,9 @@ async function tarikAbsensi() {
       toast.warning("Tidak ada rekap absensi yang cocok dengan NIK di grid");
     } else {
       toast.success(
-        `Hari Potong ${rangeLabel.value} terproses untuk ${cocok} karyawan` +
+        `Poin Lembur & Hari Potong ${rangeLabel.value} terproses untuk ${cocok} karyawan` +
           (tanpaData.length > 0 ? `, ${tanpaData.length} karyawan tanpa data absensi` : "") +
-          ". Poin, Hari Insentif, PPh21 & Cicilan tetap memakai isian manual."
+          ". Hari Insentif, PPh21 & Cicilan tetap memakai isian manual."
       );
     }
   } catch (e) {
@@ -1115,9 +1118,10 @@ onMounted(() => {
       </div>
       <div class="table-note">
         <MsIcon name="info" :size="13" />
-        Kolom <b>Poin / Hari Insentif / PPh21 / Angsuran / Simpanan Pokok / Sisa Angsuran</b> diketik
-        manual di grid (tombol <b>Tarik Absensi</b> hanya mengisi <b>Hari Potong</b> dari kolom
-        &quot;Potong Gaji&quot; di Rekap Absensi). Nilai awal <b>PPh21</b>
+        Kolom <b>Hari Insentif / PPh21 / Angsuran / Simpanan Pokok / Sisa Angsuran</b> diketik
+        manual di grid (tombol <b>Tarik Absensi</b> mengisi <b>Poin</b> dari kolom
+        &quot;Poin Lembur&quot; dan <b>Hari Potong</b> dari kolom &quot;Potong Gaji&quot;
+        di Rekap Absensi). Nilai awal <b>PPh21</b>
         diambil dari menu <b>Master &rsaquo; Setting Gaji PKRT</b>,
         lalu dapat disesuaikan untuk periode ini. Sisanya dihitung otomatis:
         <b>THP</b> = Gapok + Tunj. Jabatan + Tunj. Kompetensi + Tunj. Makan,
