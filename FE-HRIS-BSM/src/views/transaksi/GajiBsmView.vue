@@ -508,6 +508,7 @@ async function simpan() {
     const { data } = await api.post("/gaji-bsm/simpan", payload);
     adaDataTersimpan.value = data.data?.jumlah ?? rows.value.length;
     toast.success(data.message || "Data gaji berhasil disimpan");
+    await muatTersimpan();
   } catch (e) {
     toast.error(getErrorMessage(e, "Gagal menyimpan data gaji"));
   } finally {

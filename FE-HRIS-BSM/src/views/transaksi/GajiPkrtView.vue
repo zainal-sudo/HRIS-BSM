@@ -531,6 +531,7 @@ async function simpan() {
     const { data } = await api.post("/gaji-pkrt/simpan", payload);
     adaDataTersimpan.value = data.data?.jumlah ?? rows.value.length;
     toast.success(data.message || "Data gaji PKRT berhasil disimpan");
+    await muatTersimpan();
   } catch (e) {
     toast.error(getErrorMessage(e, "Gagal menyimpan data gaji PKRT"));
   } finally {
