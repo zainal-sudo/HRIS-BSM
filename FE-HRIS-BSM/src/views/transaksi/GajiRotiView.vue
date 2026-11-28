@@ -872,7 +872,7 @@ onMounted(() => {
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
-            <tr v-for="(r, i) in sortedRows" :key="r.nik">
+            <tr v-for="(r, i) in sortedRows" :key="r.nik" :class="{ 'row-highlight': r.koreksi !== 0 || r.punishment > 0 || r.lembur > 0 || r.potonggaji > 0 || r.jamlembur > 0 }">
               <td class="c frozen frozen-1">{{ i + 1 }}</td>
               <td class="frozen frozen-2">{{ r.nik }}</td>
               <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>
@@ -1311,6 +1311,15 @@ th.sorted .th-sort {
 }
 .data-table tbody tr:hover {
   background: #e9eef7;
+}
+.data-table tbody tr.row-highlight {
+  background: #fef08a !important;
+}
+.data-table tbody tr.row-highlight td {
+  background: #fef08a !important;
+}
+.data-table tbody tr.row-highlight td.frozen {
+  background: #fef08a !important;
 }
 .data-table tfoot td {
   position: sticky;
