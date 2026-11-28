@@ -145,7 +145,7 @@ function toggleFilterPopup(key: string) {
 async function fetchDistinct(key: string): Promise<(string | number)[]> {
   const set = new Set<string | number>();
   for (const r of rows.value) {
-    const v = r[key as keyof RowGajiPkrt];
+    const v = r[key as keyof RowGajiPkrt] as string | number | null | undefined;
     if (v === null || v === undefined || v === "") continue;
     set.add(v);
   }
@@ -199,6 +199,17 @@ function selesaiEdit() {
   editingTimer = setTimeout(() => {
     editing.value = false;
   }, 250);
+}
+/** Baris yang sedang aktif diedit (sorotan hanya selama sel di baris itu difokuskan). */
+const activeNik = ref<string | null>(null);
+function onRowFocusIn(nik: string) {
+  activeNik.value = nik;
+}
+function onRowFocusOut(e: FocusEvent, nik: string) {
+  const next = e.relatedTarget as Node | null;
+  const row = e.currentTarget as HTMLElement | null;
+  if (next && row && row.contains(next)) return;
+  if (activeNik.value === nik) activeNik.value = null;
 }
 let frozenRows: RowGajiPkrt[] | null = null;
 
@@ -1002,7 +1013,13 @@ onMounted(() => {
                 <b>Muat Tersimpan</b> untuk membuka periode {{ periodeLabel }}.
               </td>
             </tr>
-            <tr v-for="(r, i) in sortedRows" :key="r.nik" :class="{ 'row-highlight': r.koreksi !== 0 || r.angsuran > 0 || r.tjabatan > 0 || r.tkompetensi > 0 || r.tmakan > 0 || r.bpjskesehatan > 0 || r.bpjstk > 0 || r.simpankoperasi > 0 || r.cicilan > 0 || r.simpananpokok > 0 || r.sisaangsuran > 0 || r.pph21 > 0 || r.lembur > 0 || r.insentif > 0 }">
+            <tr
+              v-for="(r, i) in sortedRows"
+              :key="r.nik"
+              :class="{ 'row-highlight': activeNik === r.nik }"
+              @focusin="onRowFocusIn(r.nik)"
+              @focusout="onRowFocusOut($event, r.nik)"
+            >
               <td class="c frozen frozen-1">{{ i + 1 }}</td>
               <td class="frozen frozen-2">{{ r.nik }}</td>
               <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>

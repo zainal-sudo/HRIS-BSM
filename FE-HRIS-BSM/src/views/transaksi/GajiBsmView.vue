@@ -128,6 +128,17 @@ function selesaiEdit() {
     editing.value = false;
   }, 250);
 }
+/** Baris yang sedang aktif diedit (sorotan hanya selama sel di baris itu difokuskan). */
+const activeNik = ref<string | null>(null);
+function onRowFocusIn(nik: string) {
+  activeNik.value = nik;
+}
+function onRowFocusOut(e: FocusEvent, nik: string) {
+  const next = e.relatedTarget as Node | null;
+  const row = e.currentTarget as HTMLElement | null;
+  if (next && row && row.contains(next)) return;
+  if (activeNik.value === nik) activeNik.value = null;
+}
 let frozenRows: RowGajiBsm[] | null = null;
 
 const sortedRows = computed(() => {
@@ -1038,7 +1049,13 @@ onMounted(() => {
                 Belum ada data. Klik "Muat Karyawan" atau "Muat Tersimpan" untuk periode ini.
               </td>
             </tr>
-            <tr v-for="(r, i) in sortedRows" :key="r.nik" :class="{ 'row-highlight': r.koreksi !== 0 || r.angsuran > 0 || r.tjabatan > 0 || r.tkompetensi > 0 || r.potjabatan > 0 || r.bpjs > 0 || r.bpjstk > 0 || r.koperasi > 0 || r.tidakmasuk > 0 || r.terlambat > 0 || r.potonghari > 0 || r.pph21 > 0 }">
+            <tr
+              v-for="(r, i) in sortedRows"
+              :key="r.nik"
+              :class="{ 'row-highlight': activeNik === r.nik }"
+              @focusin="onRowFocusIn(r.nik)"
+              @focusout="onRowFocusOut($event, r.nik)"
+            >
               <td class="c frozen frozen-1">{{ i + 1 }}</td>
               <td class="frozen frozen-2">{{ r.nik }}</td>
               <td :title="r.nama" class="frozen frozen-3">{{ r.nama }}</td>
